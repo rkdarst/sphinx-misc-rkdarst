@@ -62,6 +62,7 @@ def _build_section_list(section: nodes.section) -> nodes.bullet_list | None:
 def _build_site_map(
     env,
     builder,
+    root_doc: str,
     docname: str,
     seen: set[str],
     show_hidden: bool,
@@ -94,7 +95,7 @@ def _build_site_map(
 
             li = nodes.list_item()
             p = nodes.paragraph()
-            p += _make_doc_link(builder, docname, target, text)
+            p += _make_doc_link(builder, root_doc, target, text)
             li += p
 
             if include_sections:
@@ -103,7 +104,7 @@ def _build_site_map(
                 if section_list is not None and len(section_list):
                     li += section_list
 
-            child = _build_site_map(env, builder, target, seen, show_hidden, include_sections)
+            child = _build_site_map(env, builder, root_doc, target, seen, show_hidden, include_sections)
             if len(child):
                 li += child
 
@@ -132,7 +133,8 @@ def _collect_reachable_docs(
     if docname in seen:
         return seen
 
-    seen = set(seen)
+    if not isinstance(seen, set):
+        seen = set(seen)
     seen.add(docname)
 
     doctree = env.get_doctree(docname)
@@ -184,7 +186,7 @@ def resolve_site_map(app: Sphinx, doctree: nodes.document, docname: str) -> None
             node.replace_self(nodes.warning("", nodes.paragraph(text=f"Unknown root page: {root_doc}")))
             continue
 
-        main_map = _build_site_map(env, builder, root_doc, set(), show_hidden, include_sections)
+        main_map = _build_site_map(env, builder, root_doc, root_doc, set(), show_hidden, include_sections)
 
         if include_orphans:
             reachable = _collect_reachable_docs(env, root_doc, set(), show_hidden)
@@ -206,7 +208,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.connect("doctree-resolved", resolve_site_map)
 
     return {
-        "version": "1.0",
+        "version": "0.1",
         "parallel_read_safe": True,
         "parallel_write_safe": True,
     }
