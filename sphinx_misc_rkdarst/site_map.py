@@ -118,7 +118,7 @@ def _build_site_map(
             caption_li += toctree_items
             ul += caption_li
         else:
-            ul += toctree_items
+            ul += toctree_items[:]
 
     return ul
 
