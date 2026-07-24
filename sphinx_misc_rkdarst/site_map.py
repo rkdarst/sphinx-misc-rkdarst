@@ -192,7 +192,7 @@ def resolve_site_map(app: Sphinx, doctree: nodes.document, docname: str) -> None
             if orphan_list is not None and len(orphan_list):
                 orphan_li = nodes.list_item()
                 orphan_p = nodes.paragraph()
-                orphan_p += nodes.strong(text="Other pages")
+                orphan_p += nodes.strong(text="Pages not linked from the TOC tree")
                 orphan_li += orphan_p
                 orphan_li += orphan_list
                 main_map += orphan_li
