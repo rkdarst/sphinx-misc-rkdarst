@@ -9,3 +9,28 @@ considered reliable yet.  If anyone wants to make a version that is
 not AI-generated, please do.  If any of these get reliable/stable
 enough for general use, they will probably be split off into a
 dedicated module.
+
+If anyone does want these to be finalized, let me know and I might be
+able to work on it.
+
+
+## site-map
+
+A directive `site-map` that adds a site map.  It is a unordered list with every
+page in the toctree in order.  There are options `include-orphans` to
+have a section with every document not in the toctree and
+`include-sections` to also include sections within the build.
+
+
+## sphinx-wordcount-builder
+
+A builder that doesn't build anything, but print a word count.  What
+is a word is not well defined (same as the one below), so don't trust
+this so much.  Instead of this, you could consider building to text
+documents and counting words in that by a proper word counting program.
+
+
+## sphinx-wordcount
+
+When this extension is loaded, it prints out a word count when you
+build (when built with any other builder)
