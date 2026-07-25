@@ -34,7 +34,17 @@ def _make_doc_link(builder, from_doc: str, target_doc: str, text: str) -> nodes.
     return make_refnode(builder, from_doc, target_doc, "", nodes.Text(text))
 
 
-def _build_section_list(section: nodes.section) -> nodes.bullet_list | None:
+def _make_section_link(
+    builder,
+    from_doc: str,
+    target_doc: str,
+    sec_id: str,
+    text: str,
+) -> nodes.reference:
+    return make_refnode(builder, from_doc, target_doc, sec_id, nodes.Text(text))
+
+
+def _build_section_list(builder, from_doc, target_doc, section: nodes.section) -> nodes.bullet_list | None:
     ul = nodes.bullet_list()
     found = False
 
@@ -46,10 +56,22 @@ def _build_section_list(section: nodes.section) -> nodes.bullet_list | None:
         if title_node is None:
             continue
 
-        li = nodes.list_item()
-        li += nodes.paragraph("", "", nodes.Text("§ " + title_node.astext()))
+        sec_id = child["ids"][0] if child.get("ids") else None
 
-        sub = _build_section_list(child)
+        li = nodes.list_item()
+        #li += nodes.paragraph("", "", nodes.Text("§ " + title_node.astext()))
+        p = nodes.paragraph()
+        ref = _make_section_link(
+            builder,
+            from_doc,
+            target_doc,
+            sec_id,
+            "§ " + title_node.astext(),
+        )
+        p += ref
+        li += p
+
+        sub = _build_section_list(builder, from_doc, target_doc, child)
         if sub is not None and len(sub):
             li += sub
 
@@ -100,7 +122,7 @@ def _build_site_map(
 
             if include_sections:
                 target_doctree = env.get_doctree(target)
-                section_list = _build_section_list(target_doctree)
+                section_list = _build_section_list(builder, root_doc, target, target_doctree[0])
                 if section_list is not None and len(section_list):
                     li += section_list
 
