@@ -16,7 +16,7 @@ class SiteMapDirective(Directive):
     has_content = False
     option_spec = {
         "root-page": directives.unchanged,
-        "show-hidden": directives.flag,
+        "exclude-hidden": directives.flag,
         "include-sections": directives.flag,
         "include-orphans": directives.flag,
     }
@@ -24,7 +24,7 @@ class SiteMapDirective(Directive):
     def run(self) -> list[nodes.Node]:
         node = site_map_node()
         node["root_page"] = self.options.get("root-page")
-        node["show_hidden"] = "show-hidden" in self.options
+        node["show_hidden"] = "exclude-hidden" not in self.options
         node["include_sections"] = "include-sections" in self.options
         node["include_orphans"] = "include-orphans" in self.options
         return [node]
