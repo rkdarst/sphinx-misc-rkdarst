@@ -124,7 +124,7 @@ def _build_site_map(
                 target_doctree = env.get_doctree(target)
                 section_list = _build_section_list(builder, root_doc, target, target_doctree[0])
                 if section_list is not None and len(section_list):
-                    li += section_list
+                    li[-1] += section_list
 
             child = _build_site_map(env, builder, root_doc, target, seen, show_hidden, include_sections)
             if len(child):
