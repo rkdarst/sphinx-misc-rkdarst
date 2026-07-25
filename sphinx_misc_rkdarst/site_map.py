@@ -84,8 +84,8 @@ def _build_section_list(builder, from_doc, target_doc, section: nodes.section) -
 def _build_site_map(
     env,
     builder,
-    root_doc: str,
-    docname: str,
+    this_doc: str,   # Directive under this page (for links)
+    docname: str,    # Site map under this page
     seen: set[str],
     show_hidden: bool,
     include_sections: bool,
@@ -117,16 +117,16 @@ def _build_site_map(
 
             li = nodes.list_item()
             p = nodes.paragraph()
-            p += _make_doc_link(builder, root_doc, target, text)
+            p += _make_doc_link(builder, this_doc, target, text)
             li += p
 
             if include_sections:
                 target_doctree = env.get_doctree(target)
-                section_list = _build_section_list(builder, root_doc, target, target_doctree[0])
+                section_list = _build_section_list(builder, this_doc, target, target_doctree[0])
                 if section_list is not None and len(section_list):
                     li[-1] += section_list
 
-            child = _build_site_map(env, builder, root_doc, target, seen, show_hidden, include_sections)
+            child = _build_site_map(env, builder, this_doc, target, seen, show_hidden, include_sections)
             if len(child):
                 li += child
 
@@ -174,7 +174,7 @@ def _collect_reachable_docs(
     return seen
 
 
-def _build_orphan_list(env, builder, root_doc: str, reachable: set[str]) -> nodes.bullet_list | None:
+def _build_orphan_list(env, builder, this_doc: str, reachable: set[str]) -> nodes.bullet_list | None:
     ul = nodes.bullet_list()
     found = False
 
@@ -186,7 +186,7 @@ def _build_orphan_list(env, builder, root_doc: str, reachable: set[str]) -> node
 
         li = nodes.list_item()
         p = nodes.paragraph()
-        p += _make_doc_link(builder, root_doc, docname, title)
+        p += _make_doc_link(builder, this_doc, docname, title)
         li += p
         ul += li
         found = True
@@ -200,6 +200,7 @@ def resolve_site_map(app: Sphinx, doctree: nodes.document, docname: str) -> None
 
     for node in doctree.findall(site_map_node):
         root_doc = node.get("root_page") or app.config.root_doc
+        this_doc = docname
         show_hidden = node.get("show_hidden", False)
         include_sections = node.get("include_sections", False)
         include_orphans = node.get("include_orphans", False)
@@ -208,11 +209,11 @@ def resolve_site_map(app: Sphinx, doctree: nodes.document, docname: str) -> None
             node.replace_self(nodes.warning("", nodes.paragraph(text=f"Unknown root page: {root_doc}")))
             continue
 
-        main_map = _build_site_map(env, builder, root_doc, root_doc, set(), show_hidden, include_sections)
+        main_map = _build_site_map(env, builder, this_doc, root_doc, set(), show_hidden, include_sections)
 
         if include_orphans:
             reachable = _collect_reachable_docs(env, root_doc, set(), show_hidden)
-            orphan_list = _build_orphan_list(env, builder, root_doc, reachable)
+            orphan_list = _build_orphan_list(env, builder, this_doc, reachable)
             if orphan_list is not None and len(orphan_list):
                 orphan_li = nodes.list_item()
                 orphan_p = nodes.paragraph()
