@@ -61,6 +61,7 @@ def _build_section_list(builder, from_doc, target_doc, section: nodes.section) -
         li = nodes.list_item()
         #li += nodes.paragraph("", "", nodes.Text("§ " + title_node.astext()))
         p = nodes.paragraph()
+        emph = nodes.emphasis()
         ref = _make_section_link(
             builder,
             from_doc,
@@ -68,7 +69,8 @@ def _build_section_list(builder, from_doc, target_doc, section: nodes.section) -
             sec_id,
             "§ " + title_node.astext(),
         )
-        p += ref
+        emph += ref
+        p += emph
         li += p
 
         sub = _build_section_list(builder, from_doc, target_doc, child)
