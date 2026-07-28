@@ -4,15 +4,21 @@ sphinx-misc-rkdarst demos
 See https://github.com/rkdarst/sphinx-misc-rkdarst/ for documentation,
 this is just a demo site
 
-hnote
------
+hnote (hidden note)
+-------------------
 
-This adds a hidden expandable note, using the `:hnote` role.
+This adds a hidden note (expandable by clicking), using the `:hnote:`
+role.
 
-A sentence with :hnote:`Some text`.
+A sentence with :hnote:`Some text`, made with::
 
-A sentence with :hnote:`[custom] Some text`.
+  :hnote:`Some text`
 
+A sentence with :hnote:`[custom] Some text`, made with::
+
+  :hnote:`[custom] Some text`
+
+Demonstration within a long paragraph:
 
 Magnam veniam sed voluptates est. Mollitia consequatur tenetur
 molestias omnis eos temporibus. Ut ipsum veniam ea quia at. Est
@@ -29,9 +35,8 @@ blanditiis atque distinctio aut.
 Site map
 --------
 
-See the :doc:`site-map` page.  Actually, that is too boring, so see
-https://aaltoscicomp.github.io/rse-training/site-map/ until this site
-is made fancier.
+See https://aaltoscicomp.github.io/rse-training/site-map/ until this
+site is made fancier.
 
 
 Contents
