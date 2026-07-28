@@ -1,0 +1,21 @@
+/* CSS for inline hidden note extension */
+
+.hnote {
+    cursor: pointer;
+    font-size: 0.7em;
+    vertical-align: top;
+    border-bottom: 1px dotted currentColor;
+    padding: 0 3px;
+    transition: all 0.2s ease;
+    user-select: none;
+    line-height: 1;
+}
+
+.hnote:hover {
+    border-bottom-style: solid;
+}
+
+.hnote[data-expanded="true"] {
+    font-size: 0.85em;
+    vertical-align: top;
+}
