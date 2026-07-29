@@ -73,9 +73,14 @@ def html_visit_hnote(self, node):
 
     prefix = node.get('prefix', 'note')
 
-    # Open the collapsible span structure
+    # Open the collapsible span structure with ARIA attributes for accessibility
     self.body.append(
-        f'<span class="hnote" onclick="this.classList.toggle(\'expanded\')">'
+        f'<span class="hnote" '
+        f'role="button" '
+        f'aria-expanded="false" '
+        f'aria-label="Hidden note: {html_module.escape(prefix)} - click to expand" '
+        f'onclick="this.classList.toggle(\'expanded\'); '
+        f'this.setAttribute(\'aria-expanded\', this.classList.contains(\'expanded\'));">'
         f'[{html_module.escape(prefix)}'
         f'<span class="hnote-content">: '
     )
