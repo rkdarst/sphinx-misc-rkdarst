@@ -63,34 +63,23 @@ def resolve_hnote(app, doctree, docname):
 
 
 def html_visit_hnote(self, node):
-    """Generate HTML for inline hidden note - collapsed state."""
+    """Generate HTML for inline hidden note - collapsed state with static content."""
     import html as html_module
 
     hnote_text = node.get('text', '')
     prefix = node.get('prefix', 'note')
 
-    # Escape special characters for HTML attribute and JavaScript
+    # Escape special characters for HTML
     escaped_text = html_module.escape(hnote_text)
     escaped_prefix = html_module.escape(prefix)
 
-    # Escape for JavaScript string (in onclick)
-    js_escaped_text = escaped_text.replace("'", "\\'").replace('"', '\\"')
-    js_escaped_prefix = escaped_prefix.replace("'", "\\'").replace('"', '\\"')
-
-    # Create a collapsible span with click handler using data attribute for state
+    # Create a collapsible span with click handler that toggles a class
+    # The full content is always in the DOM, just hidden via CSS
     self.body.append(
-        f'<span class="hnote" '
-        f'data-full-text="{escaped_text}" '
-        f'data-prefix="{escaped_prefix}" '
-        f'data-expanded="false" '
-        f'onclick="if(this.dataset.expanded === \'false\') {{ '
-        f'this.dataset.expanded = \'true\'; '
-        f'this.innerHTML=\'[{js_escaped_prefix}: {js_escaped_text}]\' '
-        f'}} else {{ '
-        f'this.dataset.expanded = \'false\'; '
-        f'this.innerHTML=\'[{js_escaped_prefix}]\' '
-        f'}}">'
-        f'[{prefix}]</span>'
+        f'<span class="hnote" onclick="this.classList.toggle(\'expanded\')">'
+        f'[{escaped_prefix}'
+        f'<span class="hnote-content">: {escaped_text}</span>'
+        f']</span>'
     )
 
 

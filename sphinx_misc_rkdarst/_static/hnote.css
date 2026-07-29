@@ -15,7 +15,30 @@
     border-bottom-style: solid;
 }
 
-.hnote[data-expanded="true"] {
+/* Hide the content span by default */
+.hnote .hnote-content {
+    display: none;
+}
+
+/* Show the content span when parent has expanded class */
+.hnote.expanded .hnote-content {
+    display: inline;
+}
+
+.hnote.expanded {
     font-size: 0.85em;
     vertical-align: top;
 }
+
+/* Print styles - show all notes when printing */
+/*
+@media print {
+    .hnote .hnote-content {
+        display: inline !important;
+    }
+
+    .hnote {
+        cursor: default;
+    }
+}
+*/
