@@ -1,6 +1,6 @@
-/* CSS for inline hidden note extension */
+/* CSS for inline note extension */
 
-.hnote {
+.inote {
     cursor: pointer;
     font-size: 0.7em;
     vertical-align: top;
@@ -10,39 +10,39 @@
     line-height: 1;
 }
 
-.hnote:hover {
+.inote:hover {
     border-bottom-style: solid;
 }
 
 /* Only prevent selection when NOT expanded */
-.hnote:not(.expanded) {
+.inote:not(.expanded) {
     user-select: none;
 }
 
-.hnote.expanded {
+.inote.expanded {
     cursor: default;
     font-size: 0.85em;
     vertical-align: top;
 }
 
 /* Hide the content span by default */
-.hnote .hnote-content {
+.inote .inote-content {
     display: none;
 }
 
 /* Show the content span when parent has expanded class */
-.hnote.expanded .hnote-content {
+.inote.expanded .inote-content {
     display: inline;
 }
 
 /* Print styles - show all notes when printing */
 /*
 @media print {
-    .hnote .hnote-content {
+    .inote .inote-content {
         display: inline !important;
     }
 
-    .hnote {
+    .inote {
         cursor: default;
     }
 }

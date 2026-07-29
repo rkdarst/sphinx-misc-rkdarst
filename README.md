@@ -22,7 +22,7 @@ have a section with every document not in the toctree and
 `include-sections` to also include sections within the build.
 
 
-## hnote
+## inote
 
 This provides an inline role for an expandable note.  This is like a
 footnote but you click and it expands in-place.
@@ -30,17 +30,17 @@ footnote but you click and it expands in-place.
 ReST:
 
 ```rst
-Basic: :hnote:`This appears when clicked.`
+Basic: :inote:`This appears when clicked.`
 
-Custom prefix: :hnote:`[advanced] Custom text for the message.`
+Custom prefix: :inote:`[advanced] Custom text for the message.`
 ```
 
 MyST:
 
 ```markdown
-Basic: {hnote}`This appears when clicked.`
+Basic: {inote}`This appears when clicked.`
 
-Custom prefix: {hnote}`[advanced] Custom text for the message.`
+Custom prefix: {inote}`[advanced] Custom text for the message.`
 ```
 
 

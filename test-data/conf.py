@@ -14,7 +14,7 @@ author = 'Author1'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx_misc_rkdarst.hnote',
+    'sphinx_misc_rkdarst.inote',
     'sphinx_misc_rkdarst.site_map',
     ]
 
