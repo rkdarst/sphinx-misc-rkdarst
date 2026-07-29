@@ -7,12 +7,22 @@
     border-bottom: 1px dotted currentColor;
     padding: 0 3px;
     transition: all 0.2s ease;
-    user-select: none;
     line-height: 1;
 }
 
 .hnote:hover {
     border-bottom-style: solid;
+}
+
+/* Only prevent selection when NOT expanded */
+.hnote:not(.expanded) {
+    user-select: none;
+}
+
+.hnote.expanded {
+    cursor: default;
+    font-size: 0.85em;
+    vertical-align: top;
 }
 
 /* Hide the content span by default */
@@ -23,11 +33,6 @@
 /* Show the content span when parent has expanded class */
 .hnote.expanded .hnote-content {
     display: inline;
-}
-
-.hnote.expanded {
-    font-size: 0.85em;
-    vertical-align: top;
 }
 
 /* Print styles - show all notes when printing */
