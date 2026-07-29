@@ -24,37 +24,42 @@ class hnote(nodes.Inline, nodes.TextElement):
 def _hnote_role(name: str, rawtext: str, text: str, lineno: int,
                 inliner, options: dict = None, content: list = None):
     """
-    Role for creating inline hidden notes.
+    Role for creating inline hidden notes with recursive parsing.
 
     Usage: :hnote:`Your note text here`
     Usage with prefix: :hnote:`[tip] Your note text here`
+    Usage with markup: :hnote:`This has *emphasis* and `code` text`
     """
     import re
 
     if options is None:
         options = {}
 
-    # Normalize text: replace newlines and multiple spaces with single space
-    hnote_text = ' '.join(text.split())
-
     # Check for prefix in brackets at the start, e.g., [tip], default is 'note'
-    prefix_match = re.match(r'^\[([^\]]+)\]\s*(.*)', hnote_text)
+    prefix_match = re.match(r'^\[([^\]]+)\]\s*(.*)', text)
     if prefix_match:
         prefix = prefix_match.group(1)
-        # Remove the prefix from the text, keep the rest
         hnote_text = ' '.join(prefix_match.group(2).split())
     else:
-        # No prefix found, use default 'note' and keep original text
+        # No prefix found, use default 'note'
         prefix = 'note'
+        hnote_text = ' '.join(text.split())
+
+    # Parse the inner content recursively to support markup
+    inner_nodes, messages = inliner.parse(
+        hnote_text, lineno, inliner, inliner
+    )
 
     hnote_id = options.get('id', '')
 
     node = hnote()
-    node['text'] = hnote_text
     node['prefix'] = prefix
     node['ids'] = [hnote_id] if hnote_id else []
 
-    return [node], []
+    # Add the parsed inner nodes as children
+    node.extend(inner_nodes)
+
+    return [node], messages
 
 
 def resolve_hnote(app, doctree, docname):
@@ -63,57 +68,67 @@ def resolve_hnote(app, doctree, docname):
 
 
 def html_visit_hnote(self, node):
-    """Generate HTML for inline hidden note - collapsed state with static content."""
+    """Generate opening HTML for inline hidden note."""
     import html as html_module
 
-    hnote_text = node.get('text', '')
     prefix = node.get('prefix', 'note')
 
-    # Escape special characters for HTML
-    escaped_text = html_module.escape(hnote_text)
-    escaped_prefix = html_module.escape(prefix)
-
-    # Create a collapsible span with click handler that toggles a class
-    # The full content is always in the DOM, just hidden via CSS
+    # Open the collapsible span structure
     self.body.append(
         f'<span class="hnote" onclick="this.classList.toggle(\'expanded\')">'
-        f'[{escaped_prefix}'
-        f'<span class="hnote-content">: {escaped_text}</span>'
-        f']</span>'
+        f'[{html_module.escape(prefix)}'
+        f'<span class="hnote-content">: '
     )
 
 
 def html_depart_hnote(self, node):
-    """No departure action needed."""
-    pass
+    """Close the HTML structure for inline hidden note."""
+    # Close the spans opened in visit_hnote
+    self.body.append('</span>]</span>')
 
 
 def text_visit_hnote(self, node):
-    """Generate text output for inline hidden note - expanded state."""
-    hnote_text = node.get('text', '')
+    """Generate opening text for inline hidden note."""
     prefix = node.get('prefix', 'note')
-    self.add_text(f'[{prefix}: {hnote_text}]')
+    self.add_text(f'[{prefix}: ')
+
+
+def text_depart_hnote(self, node):
+    """Close the text output for inline hidden note."""
+    self.add_text(']')
 
 
 def latex_visit_hnote(self, node):
-    """Generate LaTeX output for inline hidden note - expanded state."""
-    hnote_text = node.get('text', '')
+    """Generate opening LaTeX for inline hidden note."""
     prefix = node.get('prefix', 'note')
-    self.body.append(f'[{prefix}: {hnote_text}]')
+    self.body.append(f'[{prefix}: ')
+
+
+def latex_depart_hnote(self, node):
+    """Close the LaTeX output for inline hidden note."""
+    self.body.append(']')
 
 
 def man_visit_hnote(self, node):
-    """Generate man page output for inline hidden note - expanded state."""
-    hnote_text = node.get('text', '')
+    """Generate opening man page output for inline hidden note."""
     prefix = node.get('prefix', 'note')
-    self.body.append(f'[{prefix}: {hnote_text}]')
+    self.body.append(f'[{prefix}: ')
+
+
+def man_depart_hnote(self, node):
+    """Close the man page output for inline hidden note."""
+    self.body.append(']')
 
 
 def texinfo_visit_hnote(self, node):
-    """Generate Texinfo output for inline hidden note - expanded state."""
-    hnote_text = node.get('text', '')
+    """Generate opening Texinfo output for inline hidden note."""
     prefix = node.get('prefix', 'note')
-    self.body.append(f'[{prefix}: {hnote_text}]')
+    self.body.append(f'[{prefix}: ')
+
+
+def texinfo_depart_hnote(self, node):
+    """Close the Texinfo output for inline hidden note."""
+    self.body.append(']')
 
 
 def setup(app: Sphinx) -> ExtensionMetadata:
@@ -124,10 +139,10 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_node(
         hnote,
         html=(html_visit_hnote, html_depart_hnote),
-        latex=(latex_visit_hnote, html_depart_hnote),
-        text=(text_visit_hnote, html_depart_hnote),
-        man=(man_visit_hnote, html_depart_hnote),
-        texinfo=(texinfo_visit_hnote, html_depart_hnote),
+        latex=(latex_visit_hnote, latex_depart_hnote),
+        text=(text_visit_hnote, text_depart_hnote),
+        man=(man_visit_hnote, man_depart_hnote),
+        texinfo=(texinfo_visit_hnote, texinfo_depart_hnote),
     )
 
     # Register the role

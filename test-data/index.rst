@@ -18,6 +18,10 @@ A sentence with :hnote:`[custom] Some text`, made with::
 
   :hnote:`[custom] Some text`
 
+A sentence with :hnote:`some *embedded* **style**`, made with::
+
+  :hnote:`some *embedded* **style**`
+
 Demonstration within a long paragraph:
 
 Magnam veniam sed voluptates est. Mollitia consequatur tenetur
