@@ -2,7 +2,8 @@
 
 Various sphinx extensions under testing.  I may use these in my
 projects, but I probably wouldn't recommend others to use them, since
-they may not be very stable.
+they may not be very stable.  [Live
+demo](https://aaltoscicomp.github.io/rse-training/site-map/).
 
 Some of these may be significantly AI-coded so should not be
 considered reliable yet.  If anyone wants to make a version that is
@@ -25,7 +26,8 @@ have a section with every document not in the toctree and
 ## inote
 
 This provides an inline role for an expandable note.  This is like a
-footnote but you click and it expands in-place.
+footnote but you click and it expands in-place.  [Live
+demo](https://rkdarst.github.io/sphinx-misc-rkdarst/).
 
 ReST:
 
@@ -49,7 +51,8 @@ Custom prefix: {inote}`[advanced] Custom text for the message.`
 A builder that doesn't build anything, but print a word count.  What
 is a word is not well defined (same as the one below), so don't trust
 this so much.  Instead of this, you could consider building to text
-documents and counting words in that by a proper word counting program.
+documents and counting words in that by a proper word counting
+program.
 
 
 ## sphinx-wordcount
