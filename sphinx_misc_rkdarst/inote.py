@@ -36,7 +36,7 @@ def _inote_role(name: str, rawtext: str, text: str, lineno: int,
         options = {}
 
     # Check for prefix in brackets at the start, e.g., [tip], default is 'note'
-    prefix_match = re.match(r'^\[([^\]]+)\]\s*(.*)', text)
+    prefix_match = re.match(r'^\s*\[([^\]]+)\]\s*(.*)', text, re.DOTALL)
     if prefix_match:
         prefix = prefix_match.group(1)
         inote_text = ' '.join(prefix_match.group(2).split())
