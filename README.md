@@ -45,6 +45,12 @@ Basic: {inote}`This appears when clicked.`
 Custom prefix: {inote}`[advanced] Custom text for the message.`
 ```
 
+## sphinx_misc_rkdarst.toctree_missing_files
+
+This will avoid errors on missing toctree pages, and instead add a
+stub page saying "this page is not available in this build".  You can
+see some of the config options in the source.
+
 
 ## sphinx-wordcount-builder
 

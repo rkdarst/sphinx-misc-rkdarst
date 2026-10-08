@@ -16,12 +16,11 @@ author = 'Author1'
 extensions = [
     'sphinx_misc_rkdarst.inote',
     'sphinx_misc_rkdarst.site_map',
+    'sphinx_misc_rkdarst.toctree_missing_pages',
     ]
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
-
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
