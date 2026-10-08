@@ -15,7 +15,7 @@ If anyone does want these to be finalized, let me know and I might be
 able to work on it.
 
 
-## site-map
+## site-map (`sphinx_misc_rkdarst.site_map`)
 
 A directive `site-map` that adds a site map.  It is a unordered list with every
 page in the toctree in order.  There are options `include-orphans` to
@@ -23,7 +23,7 @@ have a section with every document not in the toctree and
 `include-sections` to also include sections within the build.
 
 
-## inote
+## Inline expandable note (`sphinx_misc_rkdarst.inote`)
 
 This provides an inline role for an expandable note.  This is like a
 footnote but you click and it expands in-place.  [Live
@@ -45,11 +45,23 @@ Basic: {inote}`This appears when clicked.`
 Custom prefix: {inote}`[advanced] Custom text for the message.`
 ```
 
-## sphinx_misc_rkdarst.toctree_missing_files
+## Stubs for toctree missing files (`sphinx_misc_rkdarst.toctree_missing_files`)
 
 This will avoid errors on missing toctree pages, and instead add a
-stub page saying "this page is not available in this build".  You can
-see some of the config options in the source.
+stub page (PAGENAME-stub) saying "this page is not available in this
+build".  You can see some config options in the source.
+
+If you have broken symlinks, you should probably get them ignored.
+That can be done this way:
+
+```
+exclude_patterns += [str(p.relative_to(Path(__file__).parent/"contents"))
+                     for p in Path(__file__).parent.rglob("contents/*")
+                     if p.is_symlink() and not p.exists()
+					 ]
+```
+
+This extension is still being worked out and is not perfect yet.
 
 
 ## sphinx-wordcount-builder
