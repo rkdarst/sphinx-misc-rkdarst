@@ -1,0 +1,49 @@
+/* CSS for inline note extension */
+
+.inote {
+    cursor: pointer;
+    font-size: 0.7em;
+    vertical-align: top;
+    border-bottom: 1px dotted currentColor;
+    padding: 0 3px;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.inote:hover {
+    border-bottom-style: solid;
+}
+
+/* Only prevent selection when NOT expanded */
+.inote:not(.expanded) {
+    user-select: none;
+}
+
+.inote.expanded {
+    cursor: default;
+    font-size: 0.85em;
+    vertical-align: top;
+}
+
+/* Hide the content span by default */
+.inote .inote-content {
+    display: none;
+}
+
+/* Show the content span when parent has expanded class */
+.inote.expanded .inote-content {
+    display: inline;
+}
+
+/* Print styles - show all notes when printing */
+/*
+@media print {
+    .inote .inote-content {
+        display: inline !important;
+    }
+
+    .inote {
+        cursor: default;
+    }
+}
+*/
