@@ -51,5 +51,6 @@ Contents
    :caption: Contents:
 
    site-map
+   page
    missing-page
    missing-page-link

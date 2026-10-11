@@ -176,7 +176,7 @@ def _collect_reachable_docs(
     return seen
 
 
-def _build_orphan_list(env, builder, this_doc: str, reachable: set[str]) -> nodes.bullet_list | None:
+def _build_orphan_list(env, builder, this_doc: str, reachable: set[str], include_sections: bool) -> nodes.bullet_list | None:
     ul = nodes.bullet_list()
     found = False
 
@@ -190,6 +190,13 @@ def _build_orphan_list(env, builder, this_doc: str, reachable: set[str]) -> node
         p = nodes.paragraph()
         p += _make_doc_link(builder, this_doc, docname, title)
         li += p
+
+        if include_sections:
+            target_doctree = env.get_doctree(docname)
+            section_list = _build_section_list(builder, this_doc, docname, target_doctree[0])
+            if section_list is not None and len(section_list):
+                li[-1] += section_list
+
         ul += li
         found = True
 
@@ -215,11 +222,11 @@ def resolve_site_map(app: Sphinx, doctree: nodes.document, docname: str) -> None
 
         if include_orphans:
             reachable = _collect_reachable_docs(env, root_doc, set(), show_hidden)
-            orphan_list = _build_orphan_list(env, builder, this_doc, reachable)
+            orphan_list = _build_orphan_list(env, builder, this_doc, reachable, include_sections)
             if orphan_list is not None and len(orphan_list):
                 orphan_li = nodes.list_item()
                 orphan_p = nodes.paragraph()
-                orphan_p += nodes.strong(text="Pages not linked from the TOC tree")
+                orphan_p += nodes.strong(text="Pages not reachable from the main table of contents tree")
                 orphan_li += orphan_p
                 orphan_li += orphan_list
                 main_map += orphan_li
