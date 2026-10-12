@@ -54,3 +54,4 @@ Contents
    page
    missing-page
    missing-page-link
+   page-with-links-missing

@@ -14,6 +14,7 @@ author = 'Author1'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
+    'myst_parser',
     'sphinx_misc_rkdarst.inote',
     'sphinx_misc_rkdarst.site_map',
     'sphinx_misc_rkdarst.toctree_missing_pages',
@@ -30,8 +31,18 @@ exclude_patterns += [str(p.relative_to(Path(__file__).parent)) for p in Path(__f
 #exclude_patterns += [str(p.relative_to(Path(__file__).parent/"contents")) for p in Path(__file__).parent.rglob("contents/*") if p.is_symlink() and not p.exists()]
 print(exclude_patterns)
 
+toctree_missing_target = "/missing-page-placeholder"
+toctree_missing_hook = True
+# The toctree form of the text, shorter than the one used in running text:
+#toctree_missing_toc_text = '%(path)s (not in this build)'
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'alabaster'
 html_static_path = ['_static']
+
+
+extensions += ["sphinx.ext.intersphinx"]
+intersphinx_disabled_reftypes = []
+intersphinx_mapping = {'scicomp': ('https://scicomp.aalto.fi', None)}
