@@ -2,33 +2,33 @@
 
 Add the extension to ``extensions`` in conf.py::
 
-    extensions = ['sphinx_misc_rkdarst.toctree_missing_pages']
+    extensions = ['sphinx_misc_rkdarst.missing_page_stubs']
 
 Configuration, all of it optional::
 
     # Shown instead of the link. "%(path)s" is the root-relative document
     # name without a source suffix, here "/internal/lecture-3".
-    toctree_missing_text = '%(path)s (not present in this build)'
+    missing_page_text = '%(path)s (not present in this build)'
 
     # Text of an entry put back into a toctree, which is read as one entry
     # among many and so usually wants saying more briefly than in running
     # text. Not set means the text above. Only used by the hook below.
-    toctree_missing_toc_text = '%(path)s (not in this build)'
+    missing_page_toc_text = '%(path)s (not in this build)'
 
     # A page that explains where the missing material is, included in the
     # build the normal way. When it is set and found, the text above becomes
     # a link to it.
-    toctree_missing_target = 'missing-pages'
+    missing_page_target = 'missing-pages'
 
     # Handle only these documents, matched as prefixes of the root-relative
     # document name. Everything else keeps Sphinx's own warning, so a typo in
     # another part of the documentation is still reported. Not set means
     # "handle all of them", which is also what hides typos.
-    toctree_missing_paths = ('/internal/', '/other/internal')
+    missing_page_paths = ('/internal/', '/other/internal')
 
     # Also keep missing pages in the table of contents. Off by default,
     # because it replaces the toctree directive; see "Toctrees" below.
-    toctree_missing_hook = False
+    missing_page_toctree_hook = False
 
 References
 ==========
@@ -36,14 +36,14 @@ References
 A ``:doc:`` reference is looked at only after it has failed to resolve, and
 only after Intersphinx has had its chance, so a document that exists in
 another project's inventory still links there. The reference is replaced by
-``toctree_missing_text``, linked to ``toctree_missing_target`` when that is
+``missing_page_text``, linked to ``missing_page_target`` when that is
 configured, and Sphinx does not warn about it. Each replaced document is
 reported once as an INFO line so that a build can be audited for what was
 hidden. The text is a ``toctree-missing`` inline element, so it can be styled
 from a CSS file.
 
 ``:ref:`` and ``:any:`` targets are left to Sphinx, as are references whose
-name is not matched by ``toctree_missing_paths``. A replacement is only inline,
+name is not matched by ``missing_page_paths``. A replacement is only inline,
 in the document that held the reference, so it never adds anything to a table
 of contents on its own. It does appear in one if the reference sat inside a
 section title, because there the title carries it.
@@ -54,16 +54,16 @@ Toctrees
 An entry of a ``.. toctree::`` directive that names a missing document is
 thrown away while the file is read, before any event is emitted, so it cannot
 be handled the way references are. The directive is therefore taken over by a
-subclass of Sphinx's own, and ``toctree_missing_hook`` turns that part on: an
+subclass of Sphinx's own, and ``missing_page_toctree_hook`` turns that part on: an
 entry is added back for every document that was dropped, at the end of the
-same toctree, linking to ``toctree_missing_target``. Note that:
+same toctree, linking to ``missing_page_target``. Note that:
 
-* it needs ``toctree_missing_target``, because a toctree entry has to point
+* it needs ``missing_page_target``, because a toctree entry has to point
   somewhere and the missing document cannot be pointed at;
 * the entry ends up last rather than in the place it was written, since a
   dropped entry leaves no position behind;
-* the entry is shown with ``toctree_missing_toc_text``, or with
-  ``toctree_missing_text`` when that is not set. Both are plain strings, so a
+* the entry is shown with ``missing_page_toc_text``, or with
+  ``missing_page_text`` when that is not set. Both are plain strings, so a
   text without ``%(path)s`` makes every restored entry say the same thing.
   Where the toctree is rendered, it is rendered with these entries in it,
   sidebar included;
@@ -160,13 +160,13 @@ def _is_missing(docs, docname: str) -> bool:
 def _matches(config: Config, docname: str) -> bool:
     """Whether *docname* is one of the documents to do anything about.
 
-    ``toctree_missing_paths`` holds prefixes of the root-relative document
+    ``missing_page_paths`` holds prefixes of the root-relative document
     name, and matches a document with that name as well as everything below
     it. Anything not matched is left to Sphinx to warn about.
     """
-    if not config.toctree_missing_paths:
+    if not config.missing_page_paths:
         return True
-    prefixes = config.toctree_missing_paths
+    prefixes = config.missing_page_paths
     if isinstance(prefixes, str):
         prefixes = (prefixes,)  # one prefix without a comma is a common mistake
     for prefix in prefixes:
@@ -186,7 +186,7 @@ def _substitute(value: str, name: str, docname: str) -> str:
         # it is written, and the two config values that come through here have
         # to each be able to report a problem of their own.
         logger.warning(
-            "toctree_missing_pages: %s cannot be used (%s), showing the "
+            "missing_page_stubs: %s cannot be used (%s), showing the "
             "document name on its own" % (name, error),
             once=True,
         )
@@ -196,7 +196,7 @@ def _substitute(value: str, name: str, docname: str) -> str:
 def _text(config: Config, docname: str) -> str:
     """Text shown where a link to a missing document stood."""
     return _substitute(
-        config.toctree_missing_text, "toctree_missing_text", docname
+        config.missing_page_text, "missing_page_text", docname
     )
 
 
@@ -207,10 +207,10 @@ def _toc_text(config: Config, docname: str) -> str:
     different thing to write for than running text, so it has a text of its
     own. Leaving it unset keeps the text used elsewhere.
     """
-    value = config.toctree_missing_toc_text
+    value = config.missing_page_toc_text
     if value is None:
         return _text(config, docname)
-    return _substitute(value, "toctree_missing_toc_text", docname)
+    return _substitute(value, "missing_page_toc_text", docname)
 
 
 def _report(docname: str, from_docname: str, what: str) -> None:
@@ -221,7 +221,7 @@ def _report(docname: str, from_docname: str, what: str) -> None:
     # Not once=True: Sphinx remembers the message as written here, so only the
     # first document would ever be reported.
     logger.info(
-        "toctree_missing_pages: replaced %s to /%s in %s",
+        "missing_page_stubs: replaced %s to /%s in %s",
         what,
         docname,
         from_docname,
@@ -230,12 +230,12 @@ def _report(docname: str, from_docname: str, what: str) -> None:
 
 def _link_docname(app: Sphinx) -> str:
     """Document to link the replacements to, '' if there is nothing to link."""
-    target = _docname(app.config.toctree_missing_target or "", "")
+    target = _docname(app.config.missing_page_target or "", "")
     if not target:
         return ""
     if _is_missing(_found_docs(app), target):
         logger.warning(
-            "toctree_missing_pages: toctree_missing_target %r is not a document "
+            "missing_page_stubs: missing_page_target %r is not a document "
             "in this build, so the replacements are shown without a link",
             target,
             once=True,
@@ -303,7 +303,7 @@ def _entry_docname(line: str, from_docname: str, glob: bool) -> str:
 class MissingTocTree(TocTree):
     """The ``toctree`` directive, keeping an eye on the entries Sphinx drops.
 
-    Registered in every build so that ``toctree_missing_hook`` can be set per
+    Registered in every build so that ``missing_page_toctree_hook`` can be set per
     project, and does nothing at all unless it is set. See "Toctrees" in the
     module docstring for what it does and for what it cannot do.
     """
@@ -311,7 +311,7 @@ class MissingTocTree(TocTree):
     def parse_content(self, toctree: addnodes.toctree) -> None:
         super().parse_content(toctree)
         app = self.env.app
-        if not app.config.toctree_missing_hook:
+        if not app.config.missing_page_toctree_hook:
             return
 
         link = _link_docname(app)
@@ -338,10 +338,10 @@ class MissingTocTree(TocTree):
 
 def _check_hook(app: Sphinx, config: Config) -> None:
     """Say so if the toctree hook cannot work with this version of Sphinx."""
-    if config.toctree_missing_hook and not hasattr(TocTree, "parse_content"):
+    if config.missing_page_toctree_hook and not hasattr(TocTree, "parse_content"):
         logger.warning(
-            "toctree_missing_pages: this version of Sphinx has no "
-            "TocTree.parse_content(), so toctree_missing_hook does nothing"
+            "missing_page_stubs: this version of Sphinx has no "
+            "TocTree.parse_content(), so missing_page_toctree_hook does nothing"
         )
 
 
@@ -350,21 +350,21 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     # default, so the types of an unset value have to be named here to keep it
     # from warning about a value that is simply left at None.
     app.add_config_value(
-        "toctree_missing_text", "%(path)s (not present in this build)", "env", [str]
+        "missing_page_text", "%(path)s (not present in this build)", "env", [str]
     )
     app.add_config_value(
-        "toctree_missing_toc_text", None, "env", [str, type(None)]
+        "missing_page_toc_text", None, "env", [str, type(None)]
     )
     app.add_config_value(
-        "toctree_missing_target", None, "env", [str, type(None)]
+        "missing_page_target", None, "env", [str, type(None)]
     )
     app.add_config_value(
-        "toctree_missing_paths",
+        "missing_page_paths",
         None,
         "env",
         [str, list, tuple, set, frozenset, type(None)],
     )
-    app.add_config_value("toctree_missing_hook", False, "env", [bool])
+    app.add_config_value("missing_page_toctree_hook", False, "env", [bool])
 
     # Intersphinx answers missing-reference at priority 500, so stay behind it.
     app.connect("missing-reference", _missing_reference, priority=900)

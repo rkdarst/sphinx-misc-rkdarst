@@ -45,11 +45,23 @@ Basic: {inote}`This appears when clicked.`
 Custom prefix: {inote}`[advanced] Custom text for the message.`
 ```
 
-## Stubs for toctree missing files (`sphinx_misc_rkdarst.toctree_missing_files`)
+## Missing page placeholders (`sphinx_misc_rkdarst.missing_page_stubs`)
 
-This will avoid errors on missing toctree pages, and instead add a
-stub page (PAGENAME-stub) saying "this page is not available in this
-build".  You can see some config options in the source.
+This will avoid errors on missing internal document references, and
+instead add the path instead of having the link missing (because Sphinx
+will drop) those missing references.  This was made for a case where we
+had one Sphinx site, with internal pages missing in the public build.
+Viewers should know something is missing (just the path).
+
+See the source for configuration options.  By default it will placehold
+missing pages.  If you add `missing_page_toctree_hook = True`, and a placeholder
+page referred to by `missing_page_target`, it will also replace the
+pages in the table of contents tree.
+
+This extension may be a bit fragile, especially `missing_page_toctree_hook` which non-public Sphinx APIs.
+
+`suppress_warnings = ['toc.not_readable']` will hide remaining
+warnings.
 
 If you have broken symlinks, you should probably get them ignored.
 That can be done this way:

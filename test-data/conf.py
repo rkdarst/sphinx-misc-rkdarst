@@ -17,7 +17,7 @@ extensions = [
     'myst_parser',
     'sphinx_misc_rkdarst.inote',
     'sphinx_misc_rkdarst.site_map',
-    'sphinx_misc_rkdarst.toctree_missing_pages',
+    'sphinx_misc_rkdarst.missing_page_stubs',
     ]
 
 templates_path = ['_templates']
@@ -31,10 +31,10 @@ exclude_patterns += [str(p.relative_to(Path(__file__).parent)) for p in Path(__f
 #exclude_patterns += [str(p.relative_to(Path(__file__).parent/"contents")) for p in Path(__file__).parent.rglob("contents/*") if p.is_symlink() and not p.exists()]
 print(exclude_patterns)
 
-toctree_missing_target = "/missing-page-placeholder"
-toctree_missing_hook = True
+missing_page_target = "/missing-page-placeholder"
+missing_page_toctree_hook = True
 # The toctree form of the text, shorter than the one used in running text:
-#toctree_missing_toc_text = '%(path)s (not in this build)'
+#missing_page_toc_text = '%(path)s (not in this build)'
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
