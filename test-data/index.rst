@@ -43,6 +43,13 @@ See https://aaltoscicomp.github.io/rse-training/site-map/ until this
 site is made fancier.
 
 
+Multi-cell list-tables
+----------------------
+
+:doc:`table-multicell` shows ``list-table-multicell``, in which a cell
+can cover several rows (``multirow(n)``) or columns (``multicolumn(n)``).
+
+
 Contents
 --------
 
@@ -52,6 +59,7 @@ Contents
 
    site-map
    page
+   table-multicell
    missing-page
    missing-page-link
    page-with-links-missing

@@ -76,6 +76,33 @@ exclude_patterns += [str(p.relative_to(Path(__file__).parent/"contents"))
 This extension is still being worked out and is not perfect yet.
 
 
+## Multicell list tables (`sphinx_misc_rkdarst.list_table_multicell`)
+
+This extension allows you to make multi-row or multi-column cells with
+the `list-table-multicell` directive (which is otherwise identical to
+`list-table`).  If you prefix a `list-table-multicell`'s cell's with
+`multirow(2)` or `multicolumn(2)`, that cell will span two columns
+(and so on).  This is ugly but effective.
+
+Example:
+
+````
+
+.. list-table-multicell::
+
+   * - a
+     - b
+	 - c
+   * - multirow(2) d
+     - multicolumn(2) e
+	 -
+   * -
+     - h
+	 - i
+
+````
+
+
 ## sphinx-wordcount-builder
 
 A builder that doesn't build anything, but print a word count.  What
