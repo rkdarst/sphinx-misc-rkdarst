@@ -50,6 +50,14 @@ Multi-cell list-tables
 can cover several rows (``multirow(n)``) or columns (``multicolumn(n)``).
 
 
+revealjs (in-place presentation)
+--------------------------------
+
+Appending ``?revealjs`` to the URL of any page turns that page into a
+reveal.js presentation, built entirely client side.  Try it on the
+revealjs demo pages, or on this page itself.
+
+
 Contents
 --------
 
@@ -60,6 +68,8 @@ Contents
    site-map
    page
    table-multicell
+   revealjs-demo
+   revealjs
    missing-page
    missing-page-link
    page-with-links-missing

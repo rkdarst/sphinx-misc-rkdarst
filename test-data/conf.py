@@ -19,6 +19,7 @@ extensions = [
     'sphinx_misc_rkdarst.site_map',
     'sphinx_misc_rkdarst.missing_page_stubs',
     'sphinx_misc_rkdarst.list_table_multicell',
+    'sphinx_misc_rkdarst.revealjs',
     ]
 
 templates_path = ['_templates']
