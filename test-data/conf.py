@@ -44,6 +44,10 @@ missing_page_toctree_hook = True
 html_theme = 'alabaster'
 html_static_path = ['_static']
 
+# Bigger presentation text: revealjs_font_scale multiplies the site's
+# base font size (alabaster body 17px -> 25.5px deck base at 1.5).
+revealjs_font_scale = 1.5
+
 
 extensions += ["sphinx.ext.intersphinx"]
 intersphinx_disabled_reftypes = []

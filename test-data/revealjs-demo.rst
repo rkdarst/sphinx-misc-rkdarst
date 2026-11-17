@@ -9,6 +9,8 @@ A top-level section is a slide
 
 This entire section becomes one horizontal slide.
 
+.. image:: img1.png
+
 A subsection is a subslide
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 

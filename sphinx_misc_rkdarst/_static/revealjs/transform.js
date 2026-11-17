@@ -5,15 +5,24 @@
  * design.
  *
  * Rules:
- * - The content root ([role=main] / main / article / div.body) is
- *   found; if it consists of a single <section> that starts with an
- *   <h1>, that wrapper is unwrapped so that its child sections become
- *   top-level slides.
+ * - The content root ([role=main] / main / article / div.body) becomes
+ *   the reveal.js deck IN PLACE: it gets the "reveal" class and a
+ *   .slides container, and the content is regrouped into slide
+ *   <section>s inside it.  The content never leaves its original
+ *   ancestors (e.g. .rst-content in sphinx_rtd_theme), so all of the
+ *   site's own stylesheet rules keep applying to the slide content.
+ *   Single-child wrapper elements between the root and the content
+ *   (theme wrappers such as sphinx_rtd_theme's <div
+ *   itemprop="articleBody">, and the <section> starting with the <h1>
+ *   document title that docutils >=0.18 emits) are bypassed and
+ *   hidden.
  * - Content before the first section becomes the title slide.
  * - Each child <section> (or div.section) becomes a slide; nested
  *   sections become vertical (sub)slides.
- * - <hr> forces a slide break at the current level (removed from the
- *   presentation).
+ * - <hr> forces a slide break at the current level (hidden).
+ * - The transform is non-destructive: nodes only move within the
+ *   original subtree, everything else is done by adding classes
+ *   (exit reloads the page anyway).
  */
 (function () {
     'use strict';
@@ -24,6 +33,11 @@
     window.__revealjsTransformed = true;
 
     var cfg = window.__revealjsConfig || {};
+
+    // Elements that will be hidden once the transform commits
+    // (consumed <hr>s and page-only elements).  Deferred so that a
+    // failed transform (nothing usable) falls back to a pristine page.
+    var toHide = [];
 
     function el(tag, cls) {
         var e = document.createElement(tag);
@@ -58,17 +72,45 @@
     // - anything with class "revealjs-noslide" (e.g. from
     //   ".. container:: revealjs-noslide")
     // - ".. epigraph::" blockquotes (page-only details convention)
-    function isSkippedFromSlides(node) {
-        return node.nodeType === Node.ELEMENT_NODE &&
-            (node.classList.contains('revealjs-noslide') ||
-             (node.tagName === 'BLOCKQUOTE' &&
-              node.classList.contains('epigraph')));
+    // - theme chrome that some themes inject inside the content root
+    //   (nav/footer/header, aside.sidebar: prev/next links,
+    //   breadcrumbs, ...).  docutils never emits these tags as
+    //   document content (but it does use plain <aside> for footnotes
+    //   and citations, so bare <aside> must not be excluded).
+    function isPageOnlyElement(node) {
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return false;
+        }
+        if (node.classList.contains('revealjs-noslide')) {
+            return true;
+        }
+        if (node.tagName === 'BLOCKQUOTE' &&
+            node.classList.contains('epigraph')) {
+            return true;
+        }
+        if (node.tagName === 'NAV' || node.tagName === 'FOOTER' ||
+            node.tagName === 'HEADER') {
+            return true;
+        }
+        return node.tagName === 'ASIDE' &&
+            node.classList.contains('sidebar');
     }
 
+    // Content root candidates, in priority order; the first match in
+    // document order wins.  Themes with a different structure often
+    // still work via the document.body fallback plus
+    // unwrapContentRoot(); add selectors here for new themes.
+    var ROOT_SELECTORS = [
+        '[role="main"]',
+        'main',
+        'article',
+        'div.body',
+        'div.document',
+    ];
+
     function findContentRoot() {
-        var selectors = ['[role="main"]', 'main', 'article', 'div.body', 'div.document'];
-        for (var i = 0; i < selectors.length; i++) {
-            var found = document.querySelector(selectors[i]);
+        for (var i = 0; i < ROOT_SELECTORS.length; i++) {
+            var found = document.querySelector(ROOT_SELECTORS[i]);
             if (found) {
                 return found;
             }
@@ -76,24 +118,44 @@
         return document.body;
     }
 
-    function unwrapTitleRoot(root) {
-        // If the content root consists of a single <section> that
-        // starts with an <h1> (how docutils >=0.18 renders a document
-        // title), descend into it so that its subsections are treated
-        // as top-level slides.
+    function unwrapContentRoot(root) {
+        // Some themes wrap the document in extra single-child
+        // elements.  While the node has exactly one significant child,
+        // descend through such wrappers so that the document's real
+        // children are treated as the content.  Two wrapper kinds:
+        //
+        // - Plain DIV/MAIN/ARTICLE wrappers (e.g. sphinx_rtd_theme's
+        //   <div itemprop="articleBody">): descended through only if
+        //   they contain a section below, so that meaningful styling
+        //   wrappers without slide structure are left alone.
+        // - A single <section> starting with the <h1> document title
+        //   (how docutils >=0.18 renders the document): descended
+        //   into so that its subsections become top-level slides.
         var cur = root;
+        var shells = [];
         for (;;) {
             var kids = significantChildren(cur);
-            if (kids.length !== 1 || !isSection(kids[0])) {
+            if (kids.length !== 1 || isPageOnlyElement(kids[0])) {
                 break;
             }
-            var first = kids[0].firstElementChild;
-            if (!first || first.tagName !== 'H1') {
+            var kid = kids[0];
+            if (isSection(kid)) {
+                var first = kid.firstElementChild;
+                if (!first || first.tagName !== 'H1') {
+                    break;
+                }
+            } else if (kid.tagName === 'DIV' || kid.tagName === 'MAIN' ||
+                       kid.tagName === 'ARTICLE') {
+                if (!kid.querySelector('section, div.section')) {
+                    break;
+                }
+            } else {
                 break;
             }
-            cur = kids[0];
+            shells.push(kid);
+            cur = kid;
         }
-        return cur;
+        return { source: cur, shells: shells };
     }
 
     // A slide group that ended up with a single child slide is
@@ -140,12 +202,11 @@
             var child = kids[i];
             if (child.tagName === 'HR' && cfg.breakOnHr !== false) {
                 current = null;
-                if (child.parentNode) {
-                    child.parentNode.removeChild(child);
-                }
+                toHide.push(child);
                 continue;
             }
-            if (isSkippedFromSlides(child)) {
+            if (isPageOnlyElement(child)) {
+                toHide.push(child);
                 continue;
             }
             if (isSection(child)) {
@@ -167,10 +228,33 @@
     }
 
     function transform() {
-        var root = unwrapTitleRoot(findContentRoot());
-        var revealEl = el('div', 'reveal');
+        toHide = [];
+        var revealEl = findContentRoot();
+        var unwrapped = unwrapContentRoot(revealEl);
+        var source = unwrapped.source;
+
+        // Build the deck in place (see the header comment).  First
+        // harmonize the typographic scale with the surrounding page:
+        // the reveal theme's default base font (40px) would clash with
+        // the site's own absolute sizes (e.g. sphinx_rtd_theme's 24px
+        // list line heights).  One font-size on the deck container
+        // makes slides consistently site-scaled, and reveal's uniform
+        // fit-to-window scaling does the rest.  fontScale (data attr,
+        // conf.py revealjs_font_scale) then scales the site's base up
+        // to presentation size.
+        var fontScale = parseFloat(cfg.fontScale);
+        if (!isFinite(fontScale) || fontScale <= 0) {
+            fontScale = 1;
+        }
+        var siteFontSize = parseFloat(getComputedStyle(revealEl).fontSize);
+        revealEl.classList.add('reveal');
+        revealEl.style.fontSize = isFinite(siteFontSize)
+            ? siteFontSize * fontScale + 'px'
+            : '';
+
         var slides = el('div', 'slides');
-        revealEl.appendChild(slides);
+        var kids = significantChildren(source);
+        revealEl.insertBefore(slides, revealEl.firstChild);
 
         // Content before the first section becomes the title slide(s).
         // The group is appended to slides first so that it is the
@@ -182,17 +266,15 @@
             current = el('section');
             titleGroup.appendChild(current);
         };
-        var kids = significantChildren(root);
         for (var i = 0; i < kids.length; i++) {
             var child = kids[i];
             if (child.tagName === 'HR' && cfg.breakOnHr !== false) {
                 current = null;
-                if (child.parentNode) {
-                    child.parentNode.removeChild(child);
-                }
+                toHide.push(child);
                 continue;
             }
-            if (isSkippedFromSlides(child)) {
+            if (isPageOnlyElement(child)) {
+                toHide.push(child);
                 continue;
             }
             if (isSection(child)) {
@@ -220,22 +302,50 @@
             slides.removeChild(titleGroup);
         }
         if (significantChildren(slides).length === 0) {
-            // Nothing usable found: fall back to the normal page.
+            // Nothing usable found: fall back to the normal page and
+            // undo the in-place setup (nothing has been moved).
+            revealEl.classList.remove('reveal');
+            revealEl.style.fontSize = '';
+            revealEl.removeChild(slides);
             document.documentElement.classList.remove('revealjs-mode');
             return;
         }
 
-        // Drop any page-only elements that ended up nested inside a
-        // built slide (e.g. an epigraph inside a container).  Top-level
-        // skips were never moved and remain on the normal page.
-        var dropped = slides.querySelectorAll('.revealjs-noslide, blockquote.epigraph');
+        // Commit the deferred hiding: page-only elements and consumed
+        // <hr>s at the top level, the bypassed wrapper shells, and any
+        // page-only elements that ended up nested inside a built slide
+        // (e.g. an epigraph inside a container).
+        var pending = toHide.concat(unwrapped.shells);
+        for (var h = 0; h < pending.length; h++) {
+            pending[h].classList.add('revealjs-hidden');
+        }
+        var dropped = slides.querySelectorAll(
+            '.revealjs-noslide, blockquote.epigraph, ' +
+            'nav, footer, header, aside.sidebar');
         for (var d = 0; d < dropped.length; d++) {
-            if (dropped[d].parentNode) {
-                dropped[d].parentNode.removeChild(dropped[d]);
-            }
+            dropped[d].classList.add('revealjs-hidden');
         }
 
-        document.body.appendChild(revealEl);
+        // Hide everything that is not part of the deck's ancestor
+        // chain (sidebar, breadcrumbs, footer, ...) and mark the chain
+        // itself so that CSS can neutralize containing-block traps (a
+        // transformed ancestor would anchor the fixed-position deck to
+        // itself instead of the viewport).
+        var n = revealEl;
+        while (n && n !== document.body && n.parentNode) {
+            var parent = n.parentNode;
+            for (var s = parent.firstElementChild; s; s = s.nextElementSibling) {
+                if (s !== n) {
+                    s.classList.add('revealjs-hidden');
+                }
+            }
+            if (parent === document.body) {
+                n.classList.add('revealjs-keep');
+            } else {
+                parent.classList.add('revealjs-ctx');
+            }
+            n = parent;
+        }
 
         var options = {
             embedded: false,
@@ -247,10 +357,38 @@
             center: false,
             transition: 'fade',
         };
-        if (window.revealjsOptions) {
-            for (var k in window.revealjsOptions) {
-                options[k] = window.revealjsOptions[k];
+        var mergeOptions = function (extra) {
+            for (var k in extra) {
+                if (Object.prototype.hasOwnProperty.call(extra, k)) {
+                    options[k] = extra[k];
+                }
             }
+        };
+        if (window.revealjsOptions) {
+            mergeOptions(window.revealjsOptions);
+        }
+        // Site-wide (conf.py revealjs_options) and per-page
+        // (revealjs-options docinfo / MyST front matter) options are
+        // merged by Sphinx and injected as a JSON <meta> tag; they
+        // override the defaults and window.revealjsOptions.  The meta
+        // tag must be read before reveal's setupDOM runs below.
+        var meta = document.querySelector('meta[name="revealjs-options"]');
+        if (meta) {
+            try {
+                mergeOptions(JSON.parse(meta.content));
+            } catch (err) {
+                if (window.console) {
+                    console.error('revealjs: bad options meta', err);
+                }
+            }
+        }
+        // Structural: the deck is built in place and fullscreen.
+        options.embedded = false;
+        if (options.slideNumber) {
+            // "controls: false" suppresses the slide number too; keep
+            // them readable without the control arrows.
+            options.controls = true;
+            options.controlsTutorial = false;
         }
 
         Promise.resolve(Reveal.initialize(options)).then(function () {

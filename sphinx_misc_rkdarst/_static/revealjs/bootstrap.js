@@ -5,9 +5,14 @@
  * transform.  Otherwise it does nothing.
  *
  * Configuration is read from the data attributes of the <script> tag:
- *   data-param        URL query parameter activating presentation mode
- *   data-theme        reveal.js theme name ('' = none)
+ *   data-param        URL query parameter activating presentation
+ *                     mode (?param, ?param=, or ?param=value)
+ *   data-theme        default reveal.js theme name ('' = none),
+ *                     overridden by a non-empty ?param=<name> value
+ *                     in the URL ("none" = load no theme)
  *   data-break-on-hr  "true"/"false", <hr> forces slide breaks
+ *   data-font-scale   multiplier for the deck's base font size (the
+ *                     site's body font size), default 1
  *
  * Our files (this script, transform.js, presentation.css) live in the
  * revealjs/ directory; all vendored upstream reveal.js files (MIT,
@@ -18,14 +23,46 @@
 
     var me = document.currentScript;
     var param = (me && me.getAttribute('data-param')) || 'revealjs';
-    if (!new RegExp('[?&]' + param + '(?:[&#]|$)').test(window.location.search)) {
+    // Activate on the bare parameter (?revealjs, ?foo=1&revealjs), on
+    // the empty-value form (?revealjs=, ?revealjs=&x), or with a
+    // value (?revealjs=black).  A value, when present, selects the
+    // reveal.js theme (see below).
+    var paramRe = param.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!new RegExp('[?&]' + paramRe + '(?:=[^&#]*)?(?:[&#]|$)').test(window.location.search)) {
         return;
     }
 
     var base = me.src.replace(/\/[^/]*$/, '/');
     var upstream = base + 'upstream/';
     var theme = (me && me.getAttribute('data-theme')) || '';
+    // A non-empty URL parameter value (?revealjs=black) selects the
+    // theme at view time, overriding the conf.py default.  "none"
+    // (case-insensitive) means no theme at all.  The bare parameter
+    // (?revealjs) or empty value (?revealjs=) means "use the default
+    // theme".  An unknown theme name 404s and the deck silently
+    // renders without a theme (site typography, white background).
+    var paramValue = (function () {
+        var m = new RegExp('[?&]' + paramRe + '=([^&#]*)').exec(window.location.search);
+        if (!m) {
+            return '';
+        }
+        try {
+            return decodeURIComponent(m[1]);
+        } catch (err) {
+            return m[1];
+        }
+    })();
+    if (paramValue) {
+        theme = paramValue;
+    }
+    if (theme.toLowerCase() === 'none') {
+        theme = '';
+    }
     var breakOnHr = !me || me.getAttribute('data-break-on-hr') !== 'false';
+    var fontScale = parseFloat(me && me.getAttribute('data-font-scale'));
+    if (!isFinite(fontScale) || fontScale <= 0) {
+        fontScale = 1;
+    }
 
     // Own the page immediately (blank) so that the normal page does
     // not flash before the slides appear.  Cleared on failure or
@@ -33,8 +70,8 @@
     document.documentElement.classList.add('revealjs-mode');
     var style = document.createElement('style');
     style.textContent =
-        'html.revealjs-mode body > *:not(.reveal):not(.revealjs-exit) ' +
-        '{ display: none !important; }';
+        'html.revealjs-mode body > *:not(.reveal):not(.revealjs-keep) ' +
+        ':not(.revealjs-exit) { display: none !important; }';
     document.head.appendChild(style);
 
     var abort = function () {
@@ -45,6 +82,7 @@
     window.__revealjsConfig = {
         breakOnHr: breakOnHr,
         param: param,
+        fontScale: fontScale,
         onDone: function () { window.clearTimeout(timer); },
     };
 
@@ -82,6 +120,10 @@
     if (theme) {
         addStylesheet(upstream + 'theme/' + theme + '.min.css');
     }
+    // (theme == '' => no theme stylesheet; the deck then inherits the
+    // site's own fonts/colors, and presentation.css's
+    // var(--r-background-color, #fff) fallback keeps the slide
+    // background white.)
 
     var script = document.createElement('script');
     script.src = upstream + 'reveal.min.js';
