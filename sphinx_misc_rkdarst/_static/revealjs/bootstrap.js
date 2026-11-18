@@ -11,8 +11,10 @@
  *                     overridden by a non-empty ?param=<name> value
  *                     in the URL ("none" = load no theme)
  *   data-break-on-hr  "true"/"false", <hr> forces slide breaks
- *   data-font-scale   multiplier for the deck's base font size (the
- *                     site's body font size), default 1
+ *   data-font-scale   rescales the deck's base font size in none-theme
+ *                     mode (a percentage of the page's ambient body
+ *                     text size); ignored when a theme loads, since
+ *                     themes bring their own sizes.  Default 1
  *
  * Our files (this script, transform.js, presentation.css) live in the
  * revealjs/ directory; all vendored upstream reveal.js files (MIT,
@@ -82,6 +84,7 @@
     window.__revealjsConfig = {
         breakOnHr: breakOnHr,
         param: param,
+        themed: !!theme,
         fontScale: fontScale,
         onDone: function () { window.clearTimeout(timer); },
     };

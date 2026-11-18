@@ -63,43 +63,43 @@ html.revealjs-mode .reveal .slides section {
     margin: 0 !important;
 }
 
-/* Presentation-proportioned heading sizes.  Site themes size headings
-   for reading a page (e.g. alabaster's "div.body h1 { font-size:
-   240% }"), and those higher-specificity rules override the reveal
-   theme's em-based sizes, giving slides a flat, theme-dependent
-   hierarchy (px-sized themes like sphinx_rtd_theme would not scale
-   with the deck's base font at all).  Re-assert presentation
-   proportions in em relative to the deck's base font size, so they
-   scale with the fontScale multiplier too; !important is needed to
-   beat site rules like div.body h1. */
-.reveal .slides h1 { font-size: 2.5em !important; }
-.reveal .slides h2 { font-size: 1.6em !important; }
-.reveal .slides h3 { font-size: 1.25em !important; }
-.reveal .slides h4 { font-size: 1.1em !important; }
+/* Heading sizes: the loaded reveal theme supplies its own ratios via
+   the --r-headingN-size custom properties (upstream themes define
+   1-4; h5/h6 share the 100% fallback), so themed decks use the
+   theme's intended hierarchy at its native base font size.  The
+   var() fallbacks are the normalized presentation proportions for
+   no-theme decks (and unknown theme names, whose stylesheet 404s).
+   !important is needed either way: site rules like alabaster's
+   "div.body h1 { font-size: 240% }" have higher specificity than the
+   theme's own rules and would otherwise win. */
+.reveal .slides h1 { font-size: var(--r-heading1-size, 250%) !important; }
+.reveal .slides h2 { font-size: var(--r-heading2-size, 160%) !important; }
+.reveal .slides h3 { font-size: var(--r-heading3-size, 125%) !important; }
+.reveal .slides h4 { font-size: var(--r-heading4-size, 110%) !important; }
 .reveal .slides h5,
-.reveal .slides h6 { font-size: 1em !important; }
+.reveal .slides h6 { font-size: var(--r-heading5-size, 100%) !important; }
 
-/* Presentation-proportioned body text.  Site themes size body text in
-   px for reading a page (e.g. sphinx_rtd_theme's "p { font-size: 16px;
-   line-height: 24px }"), and those direct declarations beat anything
-   the deck inherits, so text stays small (or oddly line-spaced) while
-   headings and lists grow.  Also docutils wraps <li>/<dd> content in
-   <p>, so every bullet is a p.  Force inherit so text follows the
-   deck's base font size (and the fontScale multiplier), with
-   presentation line spacing; !important is needed to beat site rules. */
+/* Body text follows the deck's base font size: 100% (of the parent,
+   i.e. inherited) defeats site rules that pin text in px for reading
+   a page (sphinx_rtd_theme's "p { font-size: 16px }" would otherwise
+   keep 16px text on a 40px theme base).  Docutils wraps <li>/<dd>
+   content in <p>, so every bullet is a p.  line-height 1.3 gives
+   presentation spacing and beats the site's absolute line-heights;
+   !important is needed to win those fights. */
 .reveal .slides p,
 .reveal .slides li,
 .reveal .slides dd,
 .reveal .slides dt {
-    font-size: inherit !important;
+    font-size: 100% !important;
     line-height: 1.3 !important;
 }
 
-/* Code blocks: site pygments themes pin pre at reading size (e.g.
-   sphinx_rtd_theme's 12px).  Reveal themes use 0.55em of the deck's
-   base font; re-assert that so code scales with fontScale too. */
+/* Code blocks: 55% of the deck base — the proportion the reveal
+   themes themselves use (0.55em).  Needed as !important because site
+   themes pin pre in px (sphinx_rtd_theme's 12px would beat the
+   theme's rule on higher specificity). */
 .reveal .slides pre {
-    font-size: 0.55em !important;
+    font-size: 55% !important;
 }
 
 /* Lists and code read left-aligned.  The core centers everything

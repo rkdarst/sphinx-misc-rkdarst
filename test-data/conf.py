@@ -44,8 +44,10 @@ missing_page_toctree_hook = True
 html_theme = 'alabaster'
 html_static_path = ['_static']
 
-# Bigger presentation text: revealjs_font_scale multiplies the site's
-# base font size (alabaster body 17px -> 25.5px deck base at 1.5).
+# revealjs_font_scale rescales the deck base only in none-theme mode
+# (a percentage of the page's ambient body text size).  test-data
+# presents with the simple theme, which brings its own 40px base, so
+# this is a no-op for these decks; kept to exercise the option.
 revealjs_font_scale = 1.5
 
 

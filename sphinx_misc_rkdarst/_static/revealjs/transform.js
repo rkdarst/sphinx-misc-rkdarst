@@ -233,24 +233,29 @@
         var unwrapped = unwrapContentRoot(revealEl);
         var source = unwrapped.source;
 
-        // Build the deck in place (see the header comment).  First
-        // harmonize the typographic scale with the surrounding page:
-        // the reveal theme's default base font (40px) would clash with
-        // the site's own absolute sizes (e.g. sphinx_rtd_theme's 24px
-        // list line heights).  One font-size on the deck container
-        // makes slides consistently site-scaled, and reveal's uniform
-        // fit-to-window scaling does the rest.  fontScale (data attr,
-        // conf.py revealjs_font_scale) then scales the site's base up
-        // to presentation size.
+        // Build the deck in place (see the header comment).  Typography
+        // splits on the theme decision (bootstrap's cfg.themed):
+        // - With a loaded theme, the theme's own base font size (e.g.
+        //   40px) and em-based type ratios stand as-is; presentation.css
+        //   pins body text, line-heights and code to that base so the
+        //   site's px rules (sphinx_rtd_theme's 16px p / 12px pre) can't
+        //   fight the theme, and re-asserts the theme's heading ratios
+        //   against site rules like alabaster's div.body h1.
+        // - Without a theme, the deck base is a percentage of the page's
+        //   ambient body text size (% on the container resolves against
+        //   its parent), and fontScale (data attr, conf.py
+        //   revealjs_font_scale) rescales it for presentation;
+        //   presentation.css supplies normalized proportions.  Either
+        //   way there are no computed-style reads: CSS does the scaling,
+        //   and reveal's uniform fit-to-window scaling does the rest.
         var fontScale = parseFloat(cfg.fontScale);
         if (!isFinite(fontScale) || fontScale <= 0) {
             fontScale = 1;
         }
-        var siteFontSize = parseFloat(getComputedStyle(revealEl).fontSize);
         revealEl.classList.add('reveal');
-        revealEl.style.fontSize = isFinite(siteFontSize)
-            ? siteFontSize * fontScale + 'px'
-            : '';
+        if (!cfg.themed) {
+            revealEl.style.fontSize = (fontScale * 100) + '%';
+        }
 
         var slides = el('div', 'slides');
         var kids = significantChildren(source);

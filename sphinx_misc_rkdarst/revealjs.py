@@ -51,10 +51,11 @@ Configuration
     breaks.  Default: ``True``.
 
 ``revealjs_font_scale``
-    Multiplier for the presentation's base font size.  The transform
-    starts from the site's own body font size (so the site's
-    em/percent-relative sizes keep working) and multiplies it by this
-    to get presentation-sized text.  Default: ``1.0``.
+    Rescales the presentation's base font size when no reveal theme is
+    loaded: the deck base becomes a percentage of the page's ambient
+    body text size.  When a theme is loaded, the theme's own base font
+    size (e.g. 40px) and type ratios are used as-is, so this has no
+    effect.  Default: ``1.0``.
 
 ``revealjs_options``
     Extra `reveal.js options <https://revealjs.com/config/>`__ as a
@@ -230,7 +231,7 @@ def _add_page_options(
 
 def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_config_value('revealjs_url_param', 'revealjs', 'html')
-    app.add_config_value('revealjs_theme', 'simple', 'html')
+    app.add_config_value('revealjs_theme', 'none', 'html')
     app.add_config_value('revealjs_break_on_hr', True, 'html')
     app.add_config_value('revealjs_font_scale', 2, 'html')
     app.add_config_value('revealjs_options', {}, 'html')
