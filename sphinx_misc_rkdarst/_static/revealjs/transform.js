@@ -645,12 +645,14 @@
         });
         window.__revealjsReveal = Reveal;
 
-        var exitBtn = el('button', 'revealjs-exit');
-        exitBtn.setAttribute('aria-label', 'Exit presentation mode');
-        exitBtn.title = 'Exit presentation (x)';
-        exitBtn.textContent = '✕';
-        exitBtn.addEventListener('click', exitPresentation);
-        document.body.appendChild(exitBtn);
+        // Exit button (disabled for now -- the `x` shortcut below keeps
+        // working; re-enable when wanted):
+        // var exitBtn = el('button', 'revealjs-exit');
+        // exitBtn.setAttribute('aria-label', 'Exit presentation mode');
+        // exitBtn.title = 'Exit presentation (x)';
+        // exitBtn.textContent = '✕';
+        // exitBtn.addEventListener('click', exitPresentation);
+        // document.body.appendChild(exitBtn);
 
         window.addEventListener('keydown', function (ev) {
             if ((ev.key === 'x' || ev.key === 'X') &&
