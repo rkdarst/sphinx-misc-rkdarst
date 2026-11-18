@@ -36,7 +36,7 @@ text
 
 text
 
-----
+.. revealjs-break::
 
 text
 

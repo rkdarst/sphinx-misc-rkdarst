@@ -19,7 +19,21 @@
  * - Content before the first section becomes the title slide.
  * - Each child <section> (or div.section) becomes a slide; nested
  *   sections become vertical (sub)slides.
- * - <hr> forces a slide break at the current level (hidden).
+ * - <hr> handling depends on cfg.hrNotes (data-hr-notes, conf.py
+ *   revealjs_hr_notes, default true):
+ *   - hr-notes mode: a plain <hr> (reST ----, MyST ---) ends the
+ *     presented material of the current slide; the following siblings
+ *     (up to the next <hr>, section or explicit break) become that
+ *     slide's audience notes -- kept out of the slides and appended,
+ *     in a .revealjs-audience-notes wrapper (preceded by a separating
+ *     rule when the slide has real notes), into the slide's
+ *     <aside class="notes"> below the real speaker notes.  A second
+ *     <hr> flushes the block and re-opens slide mode, so a doubled
+ *     `---- ----` acts as a plain break.
+ *   - otherwise: <hr> forces a slide break at the current level
+ *     (hidden) when cfg.breakOnHr is not false.
+ * - hr.revealjs-break (the revealjs-break directive) splits slides
+ *   explicitly, in every mode.
  * - The transform is non-destructive: nodes only move within the
  *   original subtree, everything else is done by adding classes
  *   (exit reloads the page anyway).
@@ -38,6 +52,14 @@
     // (consumed <hr>s and page-only elements).  Deferred so that a
     // failed transform (nothing usable) falls back to a pristine page.
     var toHide = [];
+
+    // Audience notes collected while building (hr-notes mode): records
+    // {owner: owning slide section (null = deferred: attach to the
+    // level's first slide), container: the level's slide container,
+    // kids: [moved elements]}.  Resolved into <aside class="notes">
+    // elements per level in finalizeLevel(), before that level's
+    // normalization.  Reset per transform() run.
+    var audienceNotes = [];
 
     function el(tag, cls) {
         var e = document.createElement(tag);
@@ -186,49 +208,217 @@
         }
     }
 
-    // Distribute the children of `source` into slide <section>s
-    // appended to `container`.  Sections become nested slide groups,
-    // <hr> forces a break.
-    function buildLevel(container, source) {
-        var current = null;
-        var startSlide = function () {
-            current = el('section');
-            container.appendChild(current);
-            return current;
+    // Per-level builder state, shared by the title-slide loop in
+    // transform() and buildLevel (both handle children identically;
+    // only the section recursion differs, which the caller does).
+    function newLevelState(startSlide, container) {
+        return {
+            container: container,
+            current: null,   // slide under construction
+            startSlide: startSlide,
+            inNotes: false,  // inside an audience-notes block
+            owner: null,     // slide the open audience block belongs to
+            audience: null,  // collected audience elements while inNotes
         };
+    }
+
+    // Close an open audience block: record it for injection into the
+    // owning slide's <aside class="notes"> after the deck is built.
+    // An empty block (e.g. between two consecutive <hr>s) is
+    // discarded, so a doubled `---- ----` acts as a plain break.
+    function flushAudience(st) {
+        st.inNotes = false;
+        if (st.audience && st.audience.length) {
+            audienceNotes.push({
+                owner: st.owner,
+                container: st.container,
+                kids: st.audience,
+            });
+        }
+        st.audience = null;
+        st.owner = null;
+    }
+
+    // Handle one child of a level.  Returns 'consumed' (nothing more
+    // to do), 'section' (the caller recurses into it), or 'content'
+    // (the caller appends the child to st.current).
+    //
+    // <hr> rules (see the file header): hr.revealjs-break always
+    // splits slides; in hr-notes mode (cfg.hrNotes, the default) a
+    // plain <hr> closes the current slide and opens its audience-
+    // notes block, and a second one flushes the block and re-opens
+    // slide mode; otherwise a plain <hr> splits slides when
+    // cfg.breakOnHr is not false (else it is ordinary slide content).
+    function levelChild(st, child) {
+        if (child.tagName === 'HR' &&
+            child.classList.contains('revealjs-break')) {
+            if (st.inNotes) {
+                flushAudience(st);
+            }
+            st.current = null;
+            toHide.push(child);
+            return 'consumed';
+        }
+        if (child.tagName === 'HR' && cfg.hrNotes !== false) {
+            if (st.inNotes) {
+                flushAudience(st);
+                st.current = null;
+            } else {
+                st.owner = st.current;
+                st.current = null;
+                st.inNotes = true;
+                st.audience = [];
+            }
+            toHide.push(child);
+            return 'consumed';
+        }
+        if (child.tagName === 'HR' && cfg.breakOnHr !== false) {
+            // Legacy mode (cfg.hrNotes === false): plain break.
+            st.current = null;
+            toHide.push(child);
+            return 'consumed';
+        }
+        if (st.inNotes) {
+            if (isPageOnlyElement(child)) {
+                toHide.push(child);
+                return 'consumed';
+            }
+            if (!isSection(child)) {
+                st.audience.push(child);
+                return 'consumed';
+            }
+            // A section always starts fresh: an open audience block
+            // belongs to the preceding slide.
+            flushAudience(st);
+            st.current = null;
+            return 'section';
+        }
+        if (isPageOnlyElement(child)) {
+            toHide.push(child);
+            return 'consumed';
+        }
+        if (isSection(child)) {
+            return 'section';
+        }
+        if (!st.current) {
+            st.startSlide();
+        }
+        return 'content';
+    }
+
+    // First leaf slide under `container` (descending through nested
+    // slide groups), or null when the container built no slide.
+    function firstLeafSlide(container) {
+        var s = container.firstElementChild;
+        while (s && s.firstElementChild &&
+               s.firstElementChild.tagName === 'SECTION') {
+            s = s.firstElementChild;
+        }
+        return s && s.tagName === 'SECTION' ? s : null;
+    }
+
+    // Finish a level: flush its open audience block, convert the
+    // level's directive notes containers to reveal's <aside
+    // class="notes">, and inject the level's audience notes into their
+    // owning slide's aside (below the real speaker notes).  All of
+    // this happens before normalize() so that owner references stay
+    // valid when a single-slide group is unwrapped (the aside moves
+    // with the slide's children).  Deferred blocks (an <hr> that
+    // opened notes with no preceding slide in the level) attach to the
+    // level's first slide; a level that built no slide drops them (the
+    // content just stays on the normal page).
+    function finalizeLevel(container, st) {
+        flushAudience(st);
+        var notes = container.querySelectorAll('.revealjs-notes');
+        for (var ni = 0; ni < notes.length; ni++) {
+            var note = notes[ni];
+            var noteAside = el('aside', 'notes');
+            while (note.firstChild) {
+                noteAside.appendChild(note.firstChild);
+            }
+            // Reveal's css hides aside.notes in the main view; the
+            // normal-page hiding must not carry over.
+            noteAside.removeAttribute('hidden');
+            noteAside.removeAttribute('style');
+            note.parentNode.replaceChild(noteAside, note);
+        }
+        for (var ai = 0; ai < audienceNotes.length; ai++) {
+            var rec = audienceNotes[ai];
+            if (!rec || rec.container !== container) {
+                continue;
+            }
+            audienceNotes[ai] = null;
+            var owner = rec.owner || firstLeafSlide(container);
+            if (!owner) {
+                continue;
+            }
+            var slideAside = null;
+            for (var oc = owner.firstElementChild; oc;
+                 oc = oc.nextElementSibling) {
+                if (oc.tagName === 'ASIDE' &&
+                    oc.classList.contains('notes')) {
+                    slideAside = oc;
+                    break;
+                }
+            }
+            if (!slideAside) {
+                slideAside = el('aside', 'notes');
+                owner.appendChild(slideAside);
+            }
+            var audienceWrap = el('div', 'revealjs-audience-notes');
+            if (slideAside.firstElementChild) {
+                // Visually separate the audience notes from the real
+                // speaker notes above them; an aside created just for
+                // this block (no real notes) gets no leading rule.
+                audienceWrap.appendChild(el('hr'));
+            }
+            for (var ak = 0; ak < rec.kids.length; ak++) {
+                audienceWrap.appendChild(rec.kids[ak]);
+            }
+            slideAside.appendChild(audienceWrap);
+        }
+        normalize(container);
+    }
+
+    // Distribute the children of `source` into slide <section>s
+    // appended to `container`.  Sections become nested slide groups;
+    // <hr> handling follows the mode rules (see levelChild).
+    function buildLevel(container, source) {
+        var st = newLevelState(function () {
+            st.current = el('section');
+            container.appendChild(st.current);
+            return st.current;
+        }, container);
 
         var kids = significantChildren(source);
         for (var i = 0; i < kids.length; i++) {
             var child = kids[i];
-            if (child.tagName === 'HR' && cfg.breakOnHr !== false) {
-                current = null;
-                toHide.push(child);
+            var kind = levelChild(st, child);
+            if (kind === 'consumed') {
                 continue;
             }
-            if (isPageOnlyElement(child)) {
-                toHide.push(child);
-                continue;
-            }
-            if (isSection(child)) {
+            if (kind === 'section') {
                 var group = el('section');
                 container.appendChild(group);
                 buildLevel(group, child);
-            } else {
-                if (!current) {
-                    startSlide();
-                }
-                current.appendChild(child);
+                continue;
             }
+            st.current.appendChild(child);
         }
-        normalize(container);
+        finalizeLevel(container, st);
     }
 
     function exitPresentation() {
         window.location.href = window.location.pathname;
     }
 
+    function resumeKey() {
+        return 'revealjs-resume:' + window.location.pathname;
+    }
+
     function transform() {
         toHide = [];
+        audienceNotes = [];
         var revealEl = findContentRoot();
         var unwrapped = unwrapContentRoot(revealEl);
         var source = unwrapped.source;
@@ -266,34 +456,26 @@
         // opening slide of the presentation.
         var titleGroup = el('section', 'revealjs-title');
         slides.appendChild(titleGroup);
-        var current = null;
-        var startPre = function () {
-            current = el('section');
-            titleGroup.appendChild(current);
-        };
+        var st = newLevelState(function () {
+            st.current = el('section');
+            titleGroup.appendChild(st.current);
+            return st.current;
+        }, titleGroup);
         for (var i = 0; i < kids.length; i++) {
             var child = kids[i];
-            if (child.tagName === 'HR' && cfg.breakOnHr !== false) {
-                current = null;
-                toHide.push(child);
+            var kind = levelChild(st, child);
+            if (kind === 'consumed') {
                 continue;
             }
-            if (isPageOnlyElement(child)) {
-                toHide.push(child);
-                continue;
-            }
-            if (isSection(child)) {
+            if (kind === 'section') {
                 var group = el('section', 'revealjs-section');
                 slides.appendChild(group);
                 buildLevel(group, child);
-            } else {
-                if (!current) {
-                    startPre();
-                }
-                current.appendChild(child);
+                continue;
             }
+            st.current.appendChild(child);
         }
-        normalize(titleGroup);
+        finalizeLevel(titleGroup, st);
         // Mark a leading h1 slide as the title slide.
         var firstChild = titleGroup.firstElementChild;
         if (firstChild && firstChild.tagName === 'SECTION' &&
@@ -331,6 +513,11 @@
             dropped[d].classList.add('revealjs-hidden');
         }
 
+        // Speaker-notes conversion (directive .revealjs-notes
+        // containers to <aside class="notes">) and audience-notes
+        // injection happen per level in finalizeLevel(), before
+        // normalization, so slide references stay valid.
+
         // Hide everything that is not part of the deck's ancestor
         // chain (sidebar, breadcrumbs, footer, ...) and mark the chain
         // itself so that CSS can neutralize containing-block traps (a
@@ -361,6 +548,7 @@
             overview: true,
             center: false,
             transition: 'fade',
+            plugins: (window.RevealNotes ? [window.RevealNotes] : []),
         };
         var mergeOptions = function (extra) {
             for (var k in extra) {
@@ -398,6 +586,26 @@
 
         Promise.resolve(Reveal.initialize(options)).then(function () {
             document.body.classList.add('revealjs-ready');
+            // Resume where this page was last presented (per page, in
+            // localStorage).  A #/h/v hash in the URL is reveal's own
+            // deep link and takes precedence.
+            if (!window.location.hash) {
+                try {
+                    var saved = JSON.parse(
+                        window.localStorage.getItem(resumeKey()) || 'null');
+                    if (saved && saved[0] > 0 &&
+                        saved[0] < Reveal.getTotalSlides()) {
+                        Reveal.slide(saved[0], saved[1] || 0);
+                    }
+                } catch (err) { /* storage unavailable */ }
+            }
+            Reveal.on('slidechanged', function () {
+                try {
+                    var idx = Reveal.getIndices();
+                    window.localStorage.setItem(
+                        resumeKey(), JSON.stringify([idx.h, idx.v]));
+                } catch (err) { /* storage unavailable */ }
+            });
             if (cfg.onDone) {
                 cfg.onDone();
             }

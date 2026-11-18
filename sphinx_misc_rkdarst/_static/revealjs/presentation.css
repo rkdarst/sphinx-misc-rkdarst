@@ -171,3 +171,29 @@ html.revealjs-mode .reveal .slides section {
     max-width: 90%;
     max-height: 600px;
 }
+
+/* Printing / PDF handouts.  Loading the deck with "print-pdf" in the
+   URL (e.g. page.html?revealjs&print-pdf) makes reveal.js add its
+   print-pdf layout; the fullscreen rules above would otherwise fight
+   it, so undo them for print.  Plain browser printing (without
+   print-pdf) gets reveal's simplified stacked layout.  Chrome's print
+   dialog needs background graphics enabled for slide backgrounds. */
+@media print {
+    html.revealjs-mode .reveal {
+        position: static !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        width: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        background: #fff !important;
+        z-index: auto !important;
+    }
+    .revealjs-exit { display: none !important; }
+    .reveal .slide-number,
+    .reveal .controls,
+    .reveal .progress { display: none !important; }
+}

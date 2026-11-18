@@ -10,7 +10,11 @@
  *   data-theme        default reveal.js theme name ('' = none),
  *                     overridden by a non-empty ?param=<name> value
  *                     in the URL ("none" = load no theme)
- *   data-break-on-hr  "true"/"false", <hr> forces slide breaks
+ *   data-hr-notes     "true"/"false", <hr> starts an audience-notes
+ *                     block for the preceding slide instead of
+ *                     splitting slides (default true)
+ *   data-break-on-hr  "true"/"false", <hr> forces slide breaks (only
+ *                     consulted when hr-notes is off)
  *   data-font-scale   rescales the deck's base font size in none-theme
  *                     mode (a percentage of the page's ambient body
  *                     text size); ignored when a theme loads, since
@@ -60,6 +64,7 @@
     if (theme.toLowerCase() === 'none') {
         theme = '';
     }
+    var hrNotes = !me || me.getAttribute('data-hr-notes') !== 'false';
     var breakOnHr = !me || me.getAttribute('data-break-on-hr') !== 'false';
     var fontScale = parseFloat(me && me.getAttribute('data-font-scale'));
     if (!isFinite(fontScale) || fontScale <= 0) {
@@ -82,6 +87,7 @@
     var timer = window.setTimeout(abort, 15000);
 
     window.__revealjsConfig = {
+        hrNotes: hrNotes,
         breakOnHr: breakOnHr,
         param: param,
         themed: !!theme,
@@ -145,6 +151,15 @@
         abort();
     };
     document.head.appendChild(tscript);
+
+    // The speaker-notes plugin (optional: if it fails to load, decks
+    // still present -- the S-key speaker view just isn't available).
+    pending += 1;
+    var nscript = document.createElement('script');
+    nscript.src = upstream + 'plugin/notes/notes.js';
+    nscript.onload = function () { pending -= 1; step(); };
+    nscript.onerror = function () { pending -= 1; step(); };
+    document.head.appendChild(nscript);
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function () {

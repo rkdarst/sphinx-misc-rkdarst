@@ -102,6 +102,26 @@ Example:
 
 ````
 
+## reveal.js slides (`sphinx_misc_rkdarst.revealjs`)
+
+This converts any Sphinx page into a revealjs presentation.  It
+transforms the normal static presentation in-place, it isn't a
+separate builder.  This has some advantages but also has some pitfalls
+(clash of Sphinx and reveal.js themes).
+
+* Enable by adding `?revealjs` to the URL
+* Select a revealjs theme by `?revealjs=THEMENAME`.  Note that only
+  some themes are vendored, the default `none` does not add in a
+  theme.
+* Slide hierarchy follows the section hierarchy.  `#` is main title,
+  `##` is sections (horizontal slides), `###` are vertical slides.
+* The `revealjs-notes` directive can be used for speaker notes
+* Print layout via `?revealjs&print-pdf`
+* You may need to tweak the Sphinx config option `revealjs_font_scale`
+  to make the fonts appear reasonably sized.
+* `s` enables speaker notes, `?` for more keybindings.
+
+
 
 ## sphinx-wordcount-builder
 
