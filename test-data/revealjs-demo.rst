@@ -4,7 +4,8 @@ revealjs demo
 :revealjs-options: {"slideNumber": "c/t"}
 
 Any page becomes a reveal.js presentation when you append
-``?revealjs`` to the URL.  The options field above is explained in
+``?revealjs`` to the URL -- or just follow
+:revealjs-link:`this link`.  The options field above is explained in
 `Per-page options`_ below.
 
 A top-level section is a slide
@@ -29,22 +30,20 @@ Breaking slides
 
 A section can be split into several slides with an explicit
 ``revealjs-break`` directive (MyST: ``:::{revealjs-break}``), which
-emits a hidden marker and starts a new slide -- in every ``<hr>``
-configuration:
+emits a marker and starts a new slide -- in every configuration:
 
 This paragraph is in the first slide of this section.
 
 .. revealjs-break::
 
 This paragraph is in a second slide: the directive above forced a
-break.  On the normal page the marker is an invisible ``<hr>``.
+break.  On the normal page the marker shows as a horizontal rule.
 
-Historically this was spelled with a ``----`` transition line
-(``---`` in MyST).  By default a ``----`` now introduces *audience
-notes* instead -- see `Audience notes`_ below -- and setting
-``revealjs_hr_notes = False`` in conf.py restores the old
-``----``-splits-slides behavior.  Note that three dashes (``---``) are
-*not* a transition in reST -- they render as a plain paragraph.
+A ``----`` transition line (at least four dashes) splits slides the
+same way (``revealjs_break_on_hr``, on by default).  The quieter
+``...`` divider instead introduces *audience notes* -- see
+`Audience notes`_ below.  Note that three dashes (``---``) are *not*
+a transition in reST -- they render as a plain paragraph.
 
 Code blocks
 ~~~~~~~~~~~
@@ -68,14 +67,14 @@ A second slide of the same subsection (forced by ``revealjs-break``).
 Audience notes
 --------------
 
-By default (``revealjs_hr_notes = True``), a ``----`` transition ends
-the slide's presented content: everything up to the next ``----``,
-heading or explicit break becomes *audience notes* for the preceding
-slide.  Readers see them as ordinary text on the normal page (the
-``<hr>`` shows as a horizontal rule), the slide itself shows nothing
-after its presented content, and the speaker view (``S``) lists them
-below the slide's real ``revealjs-notes`` talk track, separated from
-it by a horizontal rule.
+By default (``revealjs_ellipsis_notes = True``), a line containing
+only ``...`` ends the slide's presented content: everything up to the
+next divider, heading or explicit break becomes *audience notes* for
+the preceding slide.  Readers see them as ordinary text on the normal
+page (the divider shows as a lone ellipsis -- a quiet thought break),
+the slide itself shows nothing after its presented content, and the
+speaker view (``S``) lists them below the slide's real
+``revealjs-notes`` talk track, separated from it by a horizontal rule.
 
 .. revealjs-notes::
 
@@ -83,7 +82,7 @@ it by a horizontal rule.
    in the speaker view; the audience notes for this slide appear below
    it.
 
-----
+...
 
 This paragraph and the next are audience notes for the slide above:
 they never appear on a slide, they show as ordinary text on the
@@ -92,10 +91,25 @@ normal page, and in the speaker view they follow the talk track.
 Detailed elaboration belongs here -- background, caveats, numbers too
 tedious for a slide.
 
-----
+...
 
-This paragraph starts a new slide: the ``----`` above flushed the
+This paragraph starts a new slide: the ``...`` above flushed the
 audience-notes block and re-opened slide mode.
+
+
+Fitting an element to the slide
+-------------------------------
+
+reveal.js 5.2 can scale one element so that it fills the slide: mark
+it with the ``r-fit-text`` class (reST: the ``rst-class`` directive --
+Sphinx's plain ``class`` is the Python domain's! -- MyST: the
+``{.r-fit-text}`` attribute).  The statement below is fitted -- it
+grows until it fills the slide:
+
+.. rst-class:: r-fit-text
+
+A single fitted statement: it scales with the window and always
+fills the slide.
 
 
 Page-only details

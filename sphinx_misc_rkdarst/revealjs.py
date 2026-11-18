@@ -17,19 +17,21 @@ Slide splitting rules
 - Each top-level section (a ``<section>`` element in modern docutils
   output, ``<div class="section">`` in older ones) becomes a horizontal
   slide.  Nested sections become vertical (sub)slides.
-- By default (:confval:`revealjs_hr_notes` true), a transition line of
-  at least four dashes (``----`` in reST, which emits an ``<hr>``;
-  ``---`` in MyST) *ends the presented content of the current slide*:
-  what follows (up to the next ``----``, heading or explicit break)
-  becomes that slide's *audience notes* -- shown as ordinary text on
-  the normal page, absent from the slides, and appended below the
-  slide's real ``revealjs-notes`` speaker notes in the speaker view
-  (``S``), separated from them by a horizontal rule.  A second
-  ``----`` flushes the block and re-opens slide
-  mode, so two consecutive ``----`` lines act as a plain slide break.
-- With ``revealjs_hr_notes = False``, ``<hr>`` elements split slides
-  when :confval:`revealjs_break_on_hr` is true (the behavior of
-  earlier releases).
+- By default (:confval:`revealjs_ellipsis_notes` true), a line
+  containing only ``...`` (rendered as a lone ellipsis paragraph -- a
+  typographic thought break) *ends the presented content of the
+  current slide*: what follows (up to the next divider, heading or
+  explicit break) becomes that slide's *audience notes* -- shown as
+  ordinary text on the normal page, absent from the slides, and
+  appended below the slide's real ``revealjs-notes`` speaker notes in
+  the speaker view (``S``), separated from them by a horizontal rule.
+  A second divider flushes the block and re-opens slide mode, so two
+  consecutive divider lines act as a plain slide break.  (Exactly
+  three dots: four, ``....``, are an ``<hr>`` transition and split
+  slides like ``----``.)
+- A transition line of at least four dashes (``----`` in reST, which
+  emits an ``<hr>``; ``---`` in MyST) splits slides inside the current
+  section, if :confval:`revealjs_break_on_hr` is true.
 - The ``revealjs-break`` directive splits slides explicitly, in every
   mode.
 
@@ -58,19 +60,24 @@ Configuration
     theme, and an unknown name silently falls back to no theme (the
     404ing stylesheet is ignored).
 
+``revealjs_ellipsis_notes``
+    Interpret a line containing only ``...`` (a lone ellipsis
+    paragraph on the page) as the start of *audience notes* for the
+    preceding slide: the text after the divider is kept out of the
+    slides, stays on the normal page, and is appended below the
+    slide's real speaker notes in the speaker view.  Default:
+    ``True``.  Slide breaks then come from sections, ``----``
+    transitions and the ``revealjs-break`` directive (two consecutive
+    divider lines also act as a break).
+
 ``revealjs_hr_notes``
-    Interpret ``<hr>`` elements (``----`` transitions) as the start of
-    *audience notes* for the preceding slide instead of slide breaks:
-    the text after the ``<hr>`` is kept out of the slides, stays on the
-    normal page, and is appended below the slide's real speaker notes
-    in the speaker view.  Default: ``True``.  Slide breaks then come
-    from sections and the ``revealjs-break`` directive (two consecutive
-    ``----`` lines also act as a break).
+    Legacy switch: if ``True``, ``<hr>`` elements (``----``
+    transitions) also act as audience-notes dividers, like ``...``.
+    Default: ``False``.
 
 ``revealjs_break_on_hr``
-    With ``revealjs_hr_notes = False``: treat ``<hr>`` elements
-    (``----`` transitions) as forced slide breaks.  Default: ``True``.
-    (Ignored while ``revealjs_hr_notes`` is true.)
+    Treat ``<hr>`` elements (``----`` transitions) as forced slide
+    breaks.  Default: ``True``.
 
 ``revealjs_font_scale``
     Rescales the presentation's base font size when no reveal theme is
@@ -131,13 +138,27 @@ Directives
 
 ``revealjs-break``
     Explicit slide break (MyST: ``:::{revealjs-break}``).  Emits a
-    hidden marker that starts a new slide, in every ``<hr>`` mode::
+    marker (a plain horizontal rule on the normal page) that starts a
+    new slide, in every configuration::
 
         First slide.
 
         .. revealjs-break::
 
         Second slide.
+
+Roles
+-----
+
+``revealjs-link``
+    A link to the current page with the presentation-mode query
+    parameter appended (MyST: ``{revealjs-link}`text` ``) -- for
+    "view as slides" links written inside a page.  Query-only URLs
+    cannot be written as plain links: the parsers do not recognize
+    ``?revealjs`` as a URI (MyST resolves it as a cross-reference and
+    reports ``'myst' cross-reference target not found``), so the role
+    emits the link node directly, building the URL from
+    :confval:`revealjs_url_param`.
 
 Printing and resuming
 ---------------------
@@ -194,6 +215,7 @@ def _add_html_assets(app: Sphinx) -> None:
     app.add_js_file('revealjs/bootstrap.js', **{
         'data-param': str(app.config.revealjs_url_param),
         'data-theme': str(app.config.revealjs_theme),
+        'data-ellipsis-notes': 'true' if app.config.revealjs_ellipsis_notes else 'false',
         'data-hr-notes': 'true' if app.config.revealjs_hr_notes else 'false',
         'data-break-on-hr': 'true' if app.config.revealjs_break_on_hr else 'false',
         'data-font-scale': str(app.config.revealjs_font_scale),
@@ -341,11 +363,13 @@ class RevealjsNotes(Directive):
 class RevealjsBreak(Directive):
     """Explicit slide break (a forced split of the current section).
 
-    Emits a hidden ``<hr class="revealjs-break">`` marker that
-    transform.js turns into a slide boundary.  Useful in the default
-    ``revealjs_hr_notes`` mode, where a plain ``----`` transition
-    introduces audience notes instead of splitting slides (and in any
-    mode as a more explicit spelling of ``----``).
+    Emits an ``<hr class="revealjs-break">`` marker (a plain horizontal
+    rule on the normal page) that transform.js consumes as a slide
+    boundary -- an explicit spelling of the ``----`` transition that
+    works in every configuration (even with
+    :confval:`revealjs_break_on_hr` disabled, or when
+    :confval:`revealjs_hr_notes` repurposes ``----`` as an
+    audience-notes divider).
     """
 
     has_content = False
@@ -365,15 +389,33 @@ class RevealjsBreak(Directive):
         return [node]
 
 
+def _revealjs_link_role(
+    name: str, rawtext: str, text: str, lineno: int, inliner,
+    options: dict | None = None, content: list[str] | None = None,
+) -> tuple[list[nodes.Node], list[nodes.system_message]]:
+    """Connect to 'add_role': a link to the current page with the
+    presentation-mode query parameter appended (see
+    :confval:`revealjs_url_param`).  Needed because query-only URLs
+    are not recognized as links by the reST/MyST parsers (MyST resolves
+    them as cross-references, emitting a ``myst.xref_missing`` warning
+    and a ``#...`` anchor)."""
+    param = str(inliner.document.settings.env.app.config.revealjs_url_param)
+    node = nodes.reference(rawtext, text, refuri='?' + param)
+    node['classes'].append('revealjs-link')
+    return [node], []
+
+
 def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_config_value('revealjs_url_param', 'revealjs', 'html')
     app.add_config_value('revealjs_theme', 'none', 'html')
-    app.add_config_value('revealjs_hr_notes', True, 'html')
+    app.add_config_value('revealjs_ellipsis_notes', True, 'html')
+    app.add_config_value('revealjs_hr_notes', False, 'html')
     app.add_config_value('revealjs_break_on_hr', True, 'html')
     app.add_config_value('revealjs_font_scale', 2.0, 'html')
     app.add_config_value('revealjs_options', {}, 'html')
     app.add_directive('revealjs-notes', RevealjsNotes)
     app.add_directive('revealjs-break', RevealjsBreak)
+    app.add_role('revealjs-link', _revealjs_link_role)
 
     app.connect('builder-inited', _add_html_assets)
     app.connect('doctree-resolved', _add_doctree_options)

@@ -72,12 +72,16 @@ html.revealjs-mode .reveal .slides section {
    !important is needed either way: site rules like alabaster's
    "div.body h1 { font-size: 240% }" have higher specificity than the
    theme's own rules and would otherwise win. */
-.reveal .slides h1 { font-size: var(--r-heading1-size, 250%) !important; }
-.reveal .slides h2 { font-size: var(--r-heading2-size, 160%) !important; }
-.reveal .slides h3 { font-size: var(--r-heading3-size, 125%) !important; }
-.reveal .slides h4 { font-size: var(--r-heading4-size, 110%) !important; }
-.reveal .slides h5,
-.reveal .slides h6 { font-size: var(--r-heading5-size, 100%) !important; }
+/* Elements with reveal's r-fit-text class are font-sized by reveal
+   itself via inline styles (5.2's built-in fitter); stylesheet
+   !important rules would beat those inline styles, so fitted
+   elements are exempt from the pins below. */
+.reveal .slides h1:not(.r-fit-text) { font-size: var(--r-heading1-size, 250%) !important; }
+.reveal .slides h2:not(.r-fit-text) { font-size: var(--r-heading2-size, 160%) !important; }
+.reveal .slides h3:not(.r-fit-text) { font-size: var(--r-heading3-size, 125%) !important; }
+.reveal .slides h4:not(.r-fit-text) { font-size: var(--r-heading4-size, 110%) !important; }
+.reveal .slides h5:not(.r-fit-text),
+.reveal .slides h6:not(.r-fit-text) { font-size: var(--r-heading5-size, 100%) !important; }
 
 /* Body text follows the deck's base font size: 100% (of the parent,
    i.e. inherited) defeats site rules that pin text in px for reading
@@ -86,8 +90,8 @@ html.revealjs-mode .reveal .slides section {
    content in <p>, so every bullet is a p.  line-height 1.3 gives
    presentation spacing and beats the site's absolute line-heights;
    !important is needed to win those fights. */
-.reveal .slides p,
-.reveal .slides li,
+.reveal .slides p:not(.r-fit-text),
+.reveal .slides li:not(.r-fit-text),
 .reveal .slides dd,
 .reveal .slides dt {
     font-size: 100% !important;
@@ -98,7 +102,7 @@ html.revealjs-mode .reveal .slides section {
    themes themselves use (0.55em).  Needed as !important because site
    themes pin pre in px (sphinx_rtd_theme's 12px would beat the
    theme's rule on higher specificity). */
-.reveal .slides pre {
+.reveal .slides pre:not(.r-fit-text) {
     font-size: 55% !important;
 }
 

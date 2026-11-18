@@ -10,11 +10,14 @@
  *   data-theme        default reveal.js theme name ('' = none),
  *                     overridden by a non-empty ?param=<name> value
  *                     in the URL ("none" = load no theme)
- *   data-hr-notes     "true"/"false", <hr> starts an audience-notes
- *                     block for the preceding slide instead of
- *                     splitting slides (default true)
+ *   data-ellipsis-notes "true"/"false", a lone `...` line starts an
+ *                     audience-notes block for the preceding slide
+ *                     instead of being ordinary content (default true)
+ *   data-hr-notes     "true"/"false", legacy: <hr> acts as an
+ *                     audience-notes divider instead of splitting
+ *                     slides (default false)
  *   data-break-on-hr  "true"/"false", <hr> forces slide breaks (only
- *                     consulted when hr-notes is off)
+ *                     consulted when data-hr-notes is off)
  *   data-font-scale   rescales the deck's base font size in none-theme
  *                     mode (a percentage of the page's ambient body
  *                     text size); ignored when a theme loads, since
@@ -64,7 +67,9 @@
     if (theme.toLowerCase() === 'none') {
         theme = '';
     }
-    var hrNotes = !me || me.getAttribute('data-hr-notes') !== 'false';
+    var ellipsisNotes = !me ||
+        me.getAttribute('data-ellipsis-notes') !== 'false';
+    var hrNotes = !!me && me.getAttribute('data-hr-notes') === 'true';
     var breakOnHr = !me || me.getAttribute('data-break-on-hr') !== 'false';
     var fontScale = parseFloat(me && me.getAttribute('data-font-scale'));
     if (!isFinite(fontScale) || fontScale <= 0) {
@@ -87,6 +92,7 @@
     var timer = window.setTimeout(abort, 15000);
 
     window.__revealjsConfig = {
+        ellipsisNotes: ellipsisNotes,
         hrNotes: hrNotes,
         breakOnHr: breakOnHr,
         param: param,

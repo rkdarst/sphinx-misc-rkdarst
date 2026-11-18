@@ -19,19 +19,22 @@
  * - Content before the first section becomes the title slide.
  * - Each child <section> (or div.section) becomes a slide; nested
  *   sections become vertical (sub)slides.
- * - <hr> handling depends on cfg.hrNotes (data-hr-notes, conf.py
- *   revealjs_hr_notes, default true):
- *   - hr-notes mode: a plain <hr> (reST ----, MyST ---) ends the
- *     presented material of the current slide; the following siblings
- *     (up to the next <hr>, section or explicit break) become that
- *     slide's audience notes -- kept out of the slides and appended,
- *     in a .revealjs-audience-notes wrapper (preceded by a separating
- *     rule when the slide has real notes), into the slide's
- *     <aside class="notes"> below the real speaker notes.  A second
- *     <hr> flushes the block and re-opens slide mode, so a doubled
- *     `---- ----` acts as a plain break.
- *   - otherwise: <hr> forces a slide break at the current level
- *     (hidden) when cfg.breakOnHr is not false.
+ * - Divider (cfg.ellipsisNotes, data-ellipsis-notes, conf.py
+ *   revealjs_ellipsis_notes, default true): a paragraph containing
+ *   only `...` (reST/MyST; smartquotes renders the three dots as a
+ *   single ellipsis character) ends the presented material of the
+ *   current slide; the following siblings (up to the next divider,
+ *   section or explicit break) become that slide's audience notes --
+ *   kept out of the slides and appended, in a
+ *   .revealjs-audience-notes wrapper (preceded by a separating rule
+ *   when the slide has real notes), into the slide's
+ *   <aside class="notes"> below the real speaker notes.  A second
+ *   divider flushes the block and re-opens slide mode, so doubled
+ *   dividers act as a plain break.
+ * - A plain <hr> (reST ----, MyST ---) forces a slide break at the
+ *   current level (hidden) when cfg.breakOnHr is not false; legacy
+ *   cfg.hrNotes (revealjs_hr_notes) re-enables <hr> as an additional
+ *   divider instead.
  * - hr.revealjs-break (the revealjs-break directive) splits slides
  *   explicitly, in every mode.
  * - The transform is non-destructive: nodes only move within the
@@ -53,7 +56,7 @@
     // failed transform (nothing usable) falls back to a pristine page.
     var toHide = [];
 
-    // Audience notes collected while building (hr-notes mode): records
+    // Audience notes collected while building (divider mode): records
     // {owner: owning slide section (null = deferred: attach to the
     // level's first slide), container: the level's slide container,
     // kids: [moved elements]}.  Resolved into <aside class="notes">
@@ -224,8 +227,8 @@
 
     // Close an open audience block: record it for injection into the
     // owning slide's <aside class="notes"> after the deck is built.
-    // An empty block (e.g. between two consecutive <hr>s) is
-    // discarded, so a doubled `---- ----` acts as a plain break.
+    // An empty block (e.g. between two consecutive dividers) is
+    // discarded, so a doubled divider acts as a plain break.
     function flushAudience(st) {
         st.inNotes = false;
         if (st.audience && st.audience.length) {
@@ -239,16 +242,40 @@
         st.owner = null;
     }
 
+    // `...` alone on a line: a quiet audience-notes divider (a lone
+    // ellipsis paragraph; smartquotes renders the three dots as a
+    // single character).  Pure text only -- no inline markup.
+    function isEllipsisDivider(child) {
+        return child.tagName === 'P' && !child.firstElementChild &&
+            /^(\u2026|\.\.\.)$/.test((child.textContent || '').trim());
+    }
+
+    // Open or close the audience-notes block: the first divider
+    // closes the current slide and opens its block, the next one
+    // flushes the block and re-opens slide mode.
+    function toggleAudience(st) {
+        if (st.inNotes) {
+            flushAudience(st);
+            st.current = null;
+        } else {
+            st.owner = st.current;
+            st.current = null;
+            st.inNotes = true;
+            st.audience = [];
+        }
+    }
+
     // Handle one child of a level.  Returns 'consumed' (nothing more
     // to do), 'section' (the caller recurses into it), or 'content'
     // (the caller appends the child to st.current).
     //
-    // <hr> rules (see the file header): hr.revealjs-break always
-    // splits slides; in hr-notes mode (cfg.hrNotes, the default) a
-    // plain <hr> closes the current slide and opens its audience-
-    // notes block, and a second one flushes the block and re-opens
-    // slide mode; otherwise a plain <hr> splits slides when
-    // cfg.breakOnHr is not false (else it is ordinary slide content).
+    // Divider rules (see the file header): hr.revealjs-break always
+    // splits slides; a lone-ellipsis paragraph closes the current
+    // slide and opens its audience-notes block when cfg.ellipsisNotes
+    // is on (the default), and a second divider flushes the block and
+    // re-opens slide mode; a plain <hr> does the same only with the
+    // legacy cfg.hrNotes, else it splits slides when cfg.breakOnHr is
+    // not false (else it is ordinary slide content).
     function levelChild(st, child) {
         if (child.tagName === 'HR' &&
             child.classList.contains('revealjs-break')) {
@@ -259,21 +286,22 @@
             toHide.push(child);
             return 'consumed';
         }
+        if (cfg.ellipsisNotes !== false && isEllipsisDivider(child)) {
+            toggleAudience(st);
+            toHide.push(child);
+            return 'consumed';
+        }
         if (child.tagName === 'HR' && cfg.hrNotes !== false) {
-            if (st.inNotes) {
-                flushAudience(st);
-                st.current = null;
-            } else {
-                st.owner = st.current;
-                st.current = null;
-                st.inNotes = true;
-                st.audience = [];
-            }
+            // Legacy opt-in: <hr> also acts as a divider.
+            toggleAudience(st);
             toHide.push(child);
             return 'consumed';
         }
         if (child.tagName === 'HR' && cfg.breakOnHr !== false) {
-            // Legacy mode (cfg.hrNotes === false): plain break.
+            if (st.inNotes) {
+                // A break also closes an open audience block.
+                flushAudience(st);
+            }
             st.current = null;
             toHide.push(child);
             return 'consumed';

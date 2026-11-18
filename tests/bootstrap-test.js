@@ -154,12 +154,18 @@ check("data-theme='': themed=false", cfgOf(r).themed === false);
 r = run('?x=1');
 check('?x=1: no config set', cfgOf(r) === null);
 
-// --- hr-notes flag in __revealjsConfig ---
+// --- divider flags in __revealjsConfig ---
 r = run('?revealjs');
-check('no data-hr-notes attr: hrNotes=true (default)', cfgOf(r).hrNotes === true);
+check('no data-ellipsis-notes attr: ellipsisNotes=true (default)',
+  cfgOf(r).ellipsisNotes === true);
+check('no data-hr-notes attr: hrNotes=false (default)',
+  cfgOf(r).hrNotes === false);
+
+r = run('?revealjs', { 'data-param': 'revealjs', 'data-theme': 'simple', 'data-ellipsis-notes': 'false' });
+check("data-ellipsis-notes='false': ellipsisNotes=false", cfgOf(r).ellipsisNotes === false);
 
 r = run('?revealjs', { 'data-param': 'revealjs', 'data-theme': 'simple', 'data-hr-notes': 'true' });
-check("data-hr-notes='true': hrNotes=true", cfgOf(r).hrNotes === true);
+check("data-hr-notes='true': hrNotes=true (legacy)", cfgOf(r).hrNotes === true);
 
 r = run('?revealjs', { 'data-param': 'revealjs', 'data-theme': 'simple', 'data-hr-notes': 'false' });
 check("data-hr-notes='false': hrNotes=false", cfgOf(r).hrNotes === false);
