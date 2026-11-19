@@ -120,11 +120,12 @@ separate builder.  This has some advantages but also has some pitfalls
 * You may need to tweak the Sphinx config option `revealjs_font_scale`
   to make the fonts appear reasonably sized.
 * `s` enables speaker notes, `?` for more keybindings.
+* `---` makes a explicit slide switch without a title.
 * By default `...` (in a separate paragraph) separates the slide
   content from audience notes (not visible in the main screen).  This
   way you can have extra info for the audience in the long-form
   version.
-* Link to presentation mode: `
+* Link to presentation mode:
 
   ```
   :revealjs-link:`View presentation mode`
