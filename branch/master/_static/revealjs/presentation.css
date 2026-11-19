@@ -1,0 +1,203 @@
+/*
+ * Styling for revealjs presentation mode (see
+ * sphinx_misc_rkdarst/revealjs.py).  Loaded only in presentation mode
+ * by bootstrap.js; the first rule is duplicated inline in bootstrap.js
+ * so that the normal page can be hidden before this file arrives.
+ *
+ * The deck is built in place inside the page's own content container
+ * (see transform.js), so the site's stylesheets keep applying to the
+ * slide content.  This file only hides the rest of the page, takes
+ * the deck fullscreen, and re-asserts the few things that site layout
+ * and typography rules would otherwise get in the way of.
+ */
+
+/* Pre-transform blank and non-chain page structure.  bootstrap.js
+   marks the deck's ancestor chain with .revealjs-keep and hides all
+   other subtrees with .revealjs-hidden. */
+html.revealjs-mode body > *:not(.reveal):not(.revealjs-keep):not(.revealjs-exit) {
+    display: none !important;
+}
+
+.revealjs-hidden {
+    display: none !important;
+}
+
+/* The deck lives wherever the page content was; take it fullscreen
+   and make it opaque, overriding whatever the site's layout had in
+   mind for that container (column widths, padding, floats, ...). */
+html.revealjs-mode .reveal {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    float: none !important;
+    z-index: 1000;
+    background: var(--r-background-color, #fff);
+}
+
+/* Ancestors of the deck must not become its containing block: a
+   transformed/filtered ancestor would anchor the fixed-position deck
+   to itself instead of the viewport. */
+html.revealjs-mode .revealjs-ctx {
+    transform: none !important;
+    filter: none !important;
+    perspective: none !important;
+    contain: none !important;
+    will-change: auto !important;
+    zoom: 1 !important;
+}
+
+/* Slide boxes are positioned by reveal; margins coming from the
+   site's own section styles would offset them. */
+html.revealjs-mode .reveal .slides section {
+    margin: 0 !important;
+}
+
+/* Heading sizes: the loaded reveal theme supplies its own ratios via
+   the --r-headingN-size custom properties (upstream themes define
+   1-4; h5/h6 share the 100% fallback), so themed decks use the
+   theme's intended hierarchy at its native base font size.  The
+   var() fallbacks are the normalized presentation proportions for
+   no-theme decks (and unknown theme names, whose stylesheet 404s).
+   !important is needed either way: site rules like alabaster's
+   "div.body h1 { font-size: 240% }" have higher specificity than the
+   theme's own rules and would otherwise win. */
+/* Elements with reveal's r-fit-text class are font-sized by reveal
+   itself via inline styles (5.2's built-in fitter); stylesheet
+   !important rules would beat those inline styles, so fitted
+   elements are exempt from the pins below. */
+.reveal .slides h1:not(.r-fit-text) { font-size: var(--r-heading1-size, 250%) !important; }
+.reveal .slides h2:not(.r-fit-text) { font-size: var(--r-heading2-size, 160%) !important; }
+.reveal .slides h3:not(.r-fit-text) { font-size: var(--r-heading3-size, 125%) !important; }
+.reveal .slides h4:not(.r-fit-text) { font-size: var(--r-heading4-size, 110%) !important; }
+.reveal .slides h5:not(.r-fit-text),
+.reveal .slides h6:not(.r-fit-text) { font-size: var(--r-heading5-size, 100%) !important; }
+
+/* Body text follows the deck's base font size: 100% (of the parent,
+   i.e. inherited) defeats site rules that pin text in px for reading
+   a page (sphinx_rtd_theme's "p { font-size: 16px }" would otherwise
+   keep 16px text on a 40px theme base).  Docutils wraps <li>/<dd>
+   content in <p>, so every bullet is a p.  line-height 1.3 gives
+   presentation spacing and beats the site's absolute line-heights;
+   !important is needed to win those fights. */
+.reveal .slides p:not(.r-fit-text),
+.reveal .slides li:not(.r-fit-text),
+.reveal .slides dd,
+.reveal .slides dt {
+    font-size: 100% !important;
+    line-height: 1.3 !important;
+}
+
+/* Code blocks: 55% of the deck base — the proportion the reveal
+   themes themselves use (0.55em).  Needed as !important because site
+   themes pin pre in px (sphinx_rtd_theme's 12px would beat the
+   theme's rule on higher specificity). */
+.reveal .slides pre:not(.r-fit-text) {
+    font-size: 55% !important;
+}
+
+/* Lists and code read left-aligned.  The core centers everything
+   (.reveal .slides { text-align: center }); the vendored themes
+   re-left-align these elements, so with no theme loaded the text
+   centered while the list markers stayed at the left edge.  Themes
+   declare this themselves, so this is a no-op for themed decks. */
+.reveal .slides ul,
+.reveal .slides ol,
+.reveal .slides dl,
+.reveal .slides li,
+.reveal .slides dt,
+.reveal .slides dd,
+.reveal .slides pre {
+    text-align: left;
+}
+
+/* Exit button */
+.revealjs-exit {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    z-index: 1001;
+    padding: 2px 10px;
+    border: 1px solid #888;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.85);
+    color: #333;
+    font-size: 14px;
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+.revealjs-exit:hover {
+    opacity: 1;
+}
+
+/* Title slide: vertically centered.  Reveal positions slides with
+   higher-specificity rules (.reveal .slides>section.present sets
+   display:block on the visible slide), so !important is needed. */
+.reveal .slides .revealjs-title-slide {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    height: 100% !important;
+    text-align: center;
+}
+
+/* Lists are inline-block (reveal theme) but stretch to the full slide
+   width as flex items; center them like the rest of the content. */
+.reveal .slides .revealjs-title-slide ul,
+.reveal .slides .revealjs-title-slide ol {
+    align-self: center;
+}
+
+/* The docs theme styles apply inside slides (the content is still
+   inside the original content container); only hide the anchor
+   icons. */
+.reveal section .headerlink {
+    display: none;
+}
+
+/* The slide number overlaps the exit button; nudge it left of it. */
+.reveal .slide-number {
+    right: 44px;
+}
+
+.reveal section img {
+    max-width: 90%;
+    max-height: 600px;
+}
+
+/* Printing / PDF handouts.  Loading the deck with "print-pdf" in the
+   URL (e.g. page.html?revealjs&print-pdf) makes reveal.js add its
+   print-pdf layout; the fullscreen rules above would otherwise fight
+   it, so undo them for print.  Plain browser printing (without
+   print-pdf) gets reveal's simplified stacked layout.  Chrome's print
+   dialog needs background graphics enabled for slide backgrounds. */
+@media print {
+    html.revealjs-mode .reveal {
+        position: static !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        left: auto !important;
+        width: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        background: #fff !important;
+        z-index: auto !important;
+    }
+    .revealjs-exit { display: none !important; }
+    .reveal .slide-number,
+    .reveal .controls,
+    .reveal .progress { display: none !important; }
+}

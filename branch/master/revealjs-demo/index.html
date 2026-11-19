@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="revealjs-options" content="{&quot;slideNumber&quot;: &quot;c/t&quot;}">
+    <title>revealjs demo &#8212; Test 1  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=27fed22d" />
+    <link rel="stylesheet" type="text/css" href="../_static/inote.css?v=54d43699" />
+    <script src="../_static/documentation_options.js?v=187304be"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script data-break-on-hr="true" data-ellipsis-notes="true" data-font-scale="1.5" data-hr-notes="false" data-param="revealjs" data-theme="none" src="../_static/revealjs/bootstrap.js?v=b8089b2e"></script>
+    <link rel="index" title="Index" href="../genindex/" />
+    <link rel="search" title="Search" href="../search/" />
+    <link rel="next" title="RevealJS demo" href="../revealjs/" />
+    <link rel="prev" title="Multi-cell list-tables" href="../table-multicell/" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="revealjs-demo">
+<h1>revealjs demo<a class="headerlink" href="#revealjs-demo" title="Link to this heading">¶</a></h1>
+<p>Any page becomes a reveal.js presentation when you append
+<code class="docutils literal notranslate"><span class="pre">?revealjs</span></code> to the URL – or just follow
+<a class="revealjs-link reference external" href="?revealjs">this link</a>.  The options field above is explained in
+<a class="reference internal" href="#per-page-options">Per-page options</a> below.</p>
+<section id="a-top-level-section-is-a-slide">
+<h2>A top-level section is a slide<a class="headerlink" href="#a-top-level-section-is-a-slide" title="Link to this heading">¶</a></h2>
+<p>This entire section becomes one horizontal slide.</p>
+<img alt="../_images/img1.png" src="../_images/img1.png" />
+<section id="a-subsection-is-a-subslide">
+<h3>A subsection is a subslide<a class="headerlink" href="#a-subsection-is-a-subslide" title="Link to this heading">¶</a></h3>
+<p>Nested sections become vertical (sub)slides.</p>
+</section>
+<section id="another-subsection">
+<h3>Another subsection<a class="headerlink" href="#another-subsection" title="Link to this heading">¶</a></h3>
+<p>Another vertical subslide.</p>
+</section>
+</section>
+<section id="breaking-slides">
+<h2>Breaking slides<a class="headerlink" href="#breaking-slides" title="Link to this heading">¶</a></h2>
+<p>A section can be split into several slides with an explicit
+<code class="docutils literal notranslate"><span class="pre">revealjs-break</span></code> directive (MyST: <code class="docutils literal notranslate"><span class="pre">:::{revealjs-break}</span></code>), which
+emits a marker and starts a new slide – in every configuration:</p>
+<p>This paragraph is in the first slide of this section.</p>
+<hr class="revealjs-break docutils" />
+<p>This paragraph is in a second slide: the directive above forced a
+break.  On the normal page the marker shows as a horizontal rule.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">----</span></code> transition line (at least four dashes) splits slides the
+same way (<code class="docutils literal notranslate"><span class="pre">revealjs_break_on_hr</span></code>, on by default).  The quieter
+<code class="docutils literal notranslate"><span class="pre">...</span></code> divider instead introduces <em>audience notes</em> – see
+<a class="reference internal" href="#audience-notes">Audience notes</a> below.  Note that three dashes (<code class="docutils literal notranslate"><span class="pre">---</span></code>) are <em>not</em>
+a transition in reST – they render as a plain paragraph.</p>
+<section id="code-blocks">
+<h3>Code blocks<a class="headerlink" href="#code-blocks" title="Link to this heading">¶</a></h3>
+<p>Code blocks and other Sphinx content work inside slides:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">hello</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Hello from a slide!"</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="lists">
+<h3>Lists<a class="headerlink" href="#lists" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Lists work normally</p></li>
+<li><p>More content</p></li>
+</ul>
+<hr class="revealjs-break docutils" />
+<p>A second slide of the same subsection (forced by <code class="docutils literal notranslate"><span class="pre">revealjs-break</span></code>).</p>
+</section>
+</section>
+<section id="audience-notes">
+<h2>Audience notes<a class="headerlink" href="#audience-notes" title="Link to this heading">¶</a></h2>
+<p>By default (<code class="docutils literal notranslate"><span class="pre">revealjs_ellipsis_notes</span> <span class="pre">=</span> <span class="pre">True</span></code>), a line containing
+only <code class="docutils literal notranslate"><span class="pre">...</span></code> ends the slide’s presented content: everything up to the
+next divider, heading or explicit break becomes <em>audience notes</em> for
+the preceding slide.  Readers see them as ordinary text on the normal
+page (the divider shows as a lone ellipsis – a quiet thought break),
+the slide itself shows nothing after its presented content, and the
+speaker view (<code class="docutils literal notranslate"><span class="pre">S</span></code>) lists them below the slide’s real
+<code class="docutils literal notranslate"><span class="pre">revealjs-notes</span></code> talk track, separated from it by a horizontal rule.</p>
+<div class="revealjs-notes docutils container" style="display: none">
+<p>Talk track for the audience-notes demo: this real note comes first
+in the speaker view; the audience notes for this slide appear below
+it.</p>
+</div>
+<p>…</p>
+<p>This paragraph and the next are audience notes for the slide above:
+they never appear on a slide, they show as ordinary text on the
+normal page, and in the speaker view they follow the talk track.</p>
+<p>Detailed elaboration belongs here – background, caveats, numbers too
+tedious for a slide.</p>
+<p>…</p>
+<p>This paragraph starts a new slide: the <code class="docutils literal notranslate"><span class="pre">...</span></code> above flushed the
+audience-notes block and re-opened slide mode.</p>
+</section>
+<section id="fitting-an-element-to-the-slide">
+<h2>Fitting an element to the slide<a class="headerlink" href="#fitting-an-element-to-the-slide" title="Link to this heading">¶</a></h2>
+<p>reveal.js 5.2 can scale one element so that it fills the slide: mark
+it with the <code class="docutils literal notranslate"><span class="pre">r-fit-text</span></code> class (reST: the <code class="docutils literal notranslate"><span class="pre">rst-class</span></code> directive –
+Sphinx’s plain <code class="docutils literal notranslate"><span class="pre">class</span></code> is the Python domain’s! – MyST: the
+<code class="docutils literal notranslate"><span class="pre">{.r-fit-text}</span></code> attribute).  The statement below is fitted – it
+grows until it fills the slide:</p>
+<p class="r-fit-text">A single fitted statement: it scales with the window and always
+fills the slide.</p>
+</section>
+<section id="page-only-details">
+<h2>Page-only details<a class="headerlink" href="#page-only-details" title="Link to this heading">¶</a></h2>
+<p>Content that should appear on the normal page but never in the slides
+is marked in one of two ways.  An <code class="docutils literal notranslate"><span class="pre">epigraph</span></code> is skipped:</p>
+<blockquote class="epigraph">
+<div><p>This epigraph is visible on the normal page, but completely missing
+from the presentation – a lightweight convention for page-only
+details.</p>
+<p class="attribution">—the revealjs extension</p>
+</div></blockquote>
+<p>Anything with the class <code class="docutils literal notranslate"><span class="pre">revealjs-noslide</span></code> is skipped too, for
+example a container:</p>
+<div class="revealjs-noslide docutils container">
+<p>This container is also shown on the page only.</p>
+</div>
+<p>This paragraph is in the same slide as the two page-only blocks above
+would have been – except that those two are absent from slides.
+(Unlike <a class="reference internal" href="#audience-notes">Audience notes</a>, epigraphs and <code class="docutils literal notranslate"><span class="pre">revealjs-noslide</span></code> content
+never reach the speaker view either.)</p>
+</section>
+<section id="speaker-notes">
+<h2>Speaker notes<a class="headerlink" href="#speaker-notes" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">revealjs-notes</span></code> directive attaches hidden speaker notes to the
+slide it appears in.  They are invisible on the slide and in the
+normal page; press <code class="docutils literal notranslate"><span class="pre">S</span></code> during a presentation to open the speaker
+view, which shows the current and next slide plus the notes.</p>
+<div class="revealjs-notes docutils container" style="display: none">
+<p>Talk track for this slide: introduce speaker notes, then demo the
+speaker view (<code class="docutils literal notranslate"><span class="pre">S</span></code>).  Notes never reach the audience.</p>
+</div>
+<p>Notes can contain any body text: <strong>bold</strong>, lists, even code.</p>
+<hr class="revealjs-break docutils" />
+<p>This second slide of the section exists to show that the notes above
+stayed with <em>its</em> slide.</p>
+</section>
+<section id="theme-from-the-url">
+<h2>Theme from the URL<a class="headerlink" href="#theme-from-the-url" title="Link to this heading">¶</a></h2>
+<p>A valued <code class="docutils literal notranslate"><span class="pre">revealjs</span></code> parameter overrides the theme configured with
+<code class="docutils literal notranslate"><span class="pre">revealjs_theme</span></code>: <code class="docutils literal notranslate"><span class="pre">?revealjs=simple</span></code> presents with the vendored
+<code class="docutils literal notranslate"><span class="pre">simple</span></code> theme, <code class="docutils literal notranslate"><span class="pre">?revealjs=none</span></code> always presents unthemed.  Only
+themes vendored under <code class="docutils literal notranslate"><span class="pre">_static/revealjs/upstream/theme/</span></code> can be
+selected; an unknown name loads no theme, and the deck simply presents
+unthemed.  This demo’s <code class="docutils literal notranslate"><span class="pre">conf.py</span></code> leaves <code class="docutils literal notranslate"><span class="pre">revealjs_theme</span></code> at its
+default <code class="docutils literal notranslate"><span class="pre">'none'</span></code>, so plain <code class="docutils literal notranslate"><span class="pre">?revealjs</span></code> is already unthemed – try
+<code class="docutils literal notranslate"><span class="pre">?revealjs=simple</span></code> for a themed deck.  Unthemed decks scale their
+text from the page’s own font size (<code class="docutils literal notranslate"><span class="pre">revealjs_font_scale</span></code>); themed
+decks keep the theme’s fixed sizes.</p>
+</section>
+<section id="per-page-options">
+<h2>Per-page options<a class="headerlink" href="#per-page-options" title="Link to this heading">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">revealjs-options</span></code> field at the top of this page enables slide
+numbers for this deck only (visible in presentation mode).  Its value
+is a JSON object; it overrides the site-wide <code class="docutils literal notranslate"><span class="pre">revealjs_options</span></code>
+setting and is removed from the rendered page.  In reST it is a
+docinfo-style field at the top of the page; in MyST a front-matter key
+whose value is a <em>JSON string</em>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">:</span><span class="n">revealjs</span><span class="o">-</span><span class="n">options</span><span class="p">:</span> <span class="p">{</span><span class="s2">"slideNumber"</span><span class="p">:</span> <span class="s2">"c/t"</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>With several <code class="docutils literal notranslate"><span class="pre">revealjs-options</span></code> fields, the last one wins.</p>
+</section>
+<section id="printing-and-resuming">
+<h2>Printing and resuming<a class="headerlink" href="#printing-and-resuming" title="Link to this heading">¶</a></h2>
+<p>Load the deck with <code class="docutils literal notranslate"><span class="pre">&amp;print-pdf</span></code> in the URL (for example
+<code class="docutils literal notranslate"><span class="pre">revealjs-demo.html?revealjs&amp;print-pdf</span></code>) and print to PDF from the
+browser (landscape, margins: none, background graphics: on) to get a
+handout with every slide on its own page.  Plain browser printing
+(without <code class="docutils literal notranslate"><span class="pre">print-pdf</span></code>) also works and produces a simplified text
+layout of the whole deck.</p>
+<p>The deck also remembers where you stopped reading: re-entering the
+presentation reopens on the last viewed slide (per page, stored in the
+browser’s local storage).  A <code class="docutils literal notranslate"><span class="pre">#/2/0</span></code> style hash in the URL takes
+precedence.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../">Test 1</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../search/" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../site-map/">Site map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../page/">Page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../table-multicell/">Multi-cell list-tables</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">revealjs demo</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#a-top-level-section-is-a-slide">A top-level section is a slide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#breaking-slides">Breaking slides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#audience-notes">Audience notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fitting-an-element-to-the-slide">Fitting an element to the slide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#page-only-details">Page-only details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#speaker-notes">Speaker notes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#theme-from-the-url">Theme from the URL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#per-page-options">Per-page options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#printing-and-resuming">Printing and resuming</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../revealjs/">RevealJS demo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../page-with-links-missing/">Page with links missing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../missing-page-placeholder/">/missing-page (not present in this build)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../missing-page-placeholder/">/missing-page-link (not present in this build)</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../">Documentation overview</a><ul>
+      <li>Previous: <a href="../table-multicell/" title="previous chapter">Multi-cell list-tables</a></li>
+      <li>Next: <a href="../revealjs/" title="next chapter">RevealJS demo</a></li>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2026, Author1.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 9.0.4</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../_sources/revealjs-demo.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
